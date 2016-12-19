@@ -25,11 +25,18 @@ public class File {
     return checksum;
   }
 
-  public Checksum calculate() throws IOException, NoSuchAlgorithmException {
-    return new Checksum(file.toString());
+  public File calculate() throws IOException, NoSuchAlgorithmException {
+      Checksum newChs=new Checksum(file.toString());
+      if(checksum.equals(newChs)){
+        return null;
+      }else{
+        File oldFile=new File(file.toString(),checksum.getDigest());
+        checksum=newChs;
+        return oldFile;
+      }
   }
 
-  public void update(Checksum checksum) throws IOException, NoSuchAlgorithmException {
+  public void update(Checksum checksum) {
     this.checksum=checksum;
   }
 }
