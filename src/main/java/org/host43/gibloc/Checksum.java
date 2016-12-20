@@ -25,9 +25,9 @@ public class Checksum {
         md.update(buffer);
       }
     }catch(NoSuchAlgorithmException e){
-      state=State.CRYPTOERROR;
+      this.state=State.CRYPTOERROR;
     } catch (IOException e) {
-      state = State.FILESYSTEMERROR;
+      this.state = State.FILESYSTEMERROR;
     }
   }
 
