@@ -1,7 +1,5 @@
 package org.host43.gibloc;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +13,7 @@ public class Client {
   }
 
   //Обработать исключения раньше
-  public List<File> recalculate() throws IOException, NoSuchAlgorithmException {
+  public List<File> recalculate() {
     List<File> diffFiles=new ArrayList<>();
     for(File file:fileSet){
       File old=file.calculate();

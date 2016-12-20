@@ -11,29 +11,59 @@ import java.security.NoSuchAlgorithmException;
  * Created by xost on 12/14/16.
  */
 public class Checksum {
-  private MessageDigest md;
+  private MessageDigest md=null;
+  private State state;
 
-  public Checksum(String filename) throws NoSuchAlgorithmException, IOException {
+  public Checksum(String filename,State state){
     Path file = Paths.get(filename);
+    this.state=state;
     byte[] buffer = new byte[8192];
-    md = MessageDigest.getInstance("MD5");
-    FileInputStream fis = new FileInputStream(file.toFile());
-    while (fis.read(buffer) != -1) {
-      md.update(buffer);
+    try {
+      md = MessageDigest.getInstance("MD5");
+      FileInputStream fis = new FileInputStream(file.toFile());
+      while (fis.read(buffer) != -1) {
+        md.update(buffer);
+      }
+    }catch(NoSuchAlgorithmException e){
+      state=State.CRYPTOERROR;
+    } catch (IOException e) {
+      state = State.FILESYSTEMERROR;
     }
   }
 
+  public Checksum(String filename){
+    this(filename,State.OK);
+  }
+
   public Checksum(byte[] digest) {
-    md.digest(digest);
+    if(digest==null)
+      state=State.EMPTY;
+    else{
+      state=State.OK;
+      md.digest(digest);
+    }
   }
 
   public byte[] getDigest() {
-    return md.digest();
+    switch(state){
+      case OK:
+      case UPDATED:
+        return md.digest();
+      default:
+        return null;
+    }
   }
 
-  public boolean equals(byte[] rightDigest) {
+  public void setState(State state){
+    this.state=state;
+  }
 
-    return MessageDigest.isEqual(md.digest(), rightDigest);
+  public State getState(){
+    return state;
+  }
+
+  public boolean equals(byte[] right) {
+    return MessageDigest.isEqual(md.digest(), right);
   }
 
   public boolean equals(Checksum right) {
