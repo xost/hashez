@@ -1,37 +1,63 @@
 package org.host43.gibloc;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by stas on 16.12.2016.
  */
 public class File {
-  private Path file;
-  private Checksum checksum;
+  private String filename=null;
+  private Checksum checksum=null;
+  private State state=null;
 
-  public File(String file,byte[] digest){
-    this.file= Paths.get(file);
-    this.checksum=new Checksum(digest);
+  public File(String filename,byte[] digest,State state){
+    this.filename=filename;
+    this.state=state;
+    switch(this.state){
+      case OK:
+      case UPDATED:
+        this.checksum=new Checksum(digest);
+        break;
+    }
   }
 
-  public String getFilename(){
-    return file.toString();
+  @Override
+  public String toString(){
+    return filename;
   }
 
   public Checksum getChecksum(){
     return checksum;
   }
 
+  public State getState(){
+    return state;
+  }
+
   public File calculate(){
-    Checksum newChs=new Checksum(file.toString());
-    if(checksum.equals(newChs)){
-      return null;
-    }else{
-      File oldFile=new File(file.toString(),checksum.getDigest());
-      checksum=newChs;
-      checksum.setState(State.UPDATED);
-      return oldFile;
+    Checksum newChs= null;
+    try{
+      newChs=new Checksum(filename);
+    }catch(NoSuchAlgorithmException e){
+      state=State.CRYPTOERROR;
+      return this;
+    }catch(IOException e){
+      state=State.FILESYSTEMERROR;
+      return this;
     }
+    if(state!=State.CRYPTOERROR &
+        state!=State.FILESYSTEMERROR &
+        state!=State.EMPTY){
+      if(checksum.equals(newChs)){
+        state=State.OK;
+        return null;
+      }
+    }
+    state=State.UPDATED;
+    checksum=newChs;
+    return this;
   }
 }

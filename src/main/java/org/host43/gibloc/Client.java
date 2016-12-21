@@ -12,7 +12,6 @@ public class Client {
       this.fileSet=fileSet;
   }
 
-  //Обработать исключения раньше
   public List<File> recalculate() {
     List<File> diffFiles=new ArrayList<>();
     for(File file:fileSet){

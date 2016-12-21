@@ -14,12 +14,12 @@ public class Hashez {
         "C:\\config.sys");
     List<File> fileSet=new ArrayList<>();
     for(String filename:files){
-      fileSet.add(new File(filename,null));
+      fileSet.add(new File(filename,null,State.EMPTY));
     }
     Client cl=new Client(fileSet);
     List<File> diffFiles=cl.recalculate();
     for(File file:diffFiles){
-      System.out.println("File %s is different !");
+      System.out.printf("File \"%s\" is different !\n",file.toString());
     }
   }
   //  for(String s:files){

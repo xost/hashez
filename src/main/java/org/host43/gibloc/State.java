@@ -5,7 +5,6 @@ package org.host43.gibloc;
  */
 public enum State {
   OK,
-  NEW,
   UPDATED,
   FILESYSTEMERROR,
   CRYPTOERROR,
