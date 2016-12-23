@@ -30,7 +30,7 @@ public class DbDialog {
     while(rs.next()){
       String filename=rs.getNString("item");
       byte[] checksum =rs.getBytes("checksum");
-      State state=State(4);
+      State state=State.OK;
     }
     return null;
   }
