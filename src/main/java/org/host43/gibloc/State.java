@@ -11,13 +11,13 @@ public enum State {
   EMPTY(4)
   ;
 
-  private final int stateCode;
+  private final int state;
 
-  State(int stateCode){
-    this.stateCode = stateCode;
+  private State(int state){
+    this.state = state;
   }
 
   public int getState(){
-    return this.stateCode;
+    return this.state;
   }
 }
