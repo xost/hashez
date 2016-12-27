@@ -1,8 +1,6 @@
 package org.host43.gibloc;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -51,8 +49,6 @@ public class File {
     if(state!=State.CRYPTOERROR &&
         state!=State.FILESYSTEMERROR &&
         state!=State.EMPTY){
-      System.out.println(checksum.toHexString());
-      System.out.println(newChs.toHexString());
       if(checksum.equals(newChs)){
         state=State.OK;
         return null;
@@ -60,6 +56,7 @@ public class File {
     }
     state=State.UPDATED;
     checksum=newChs;
+    System.out.println(checksum.toHexString());
     return this;
   }
 }

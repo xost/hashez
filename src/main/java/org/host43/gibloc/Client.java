@@ -30,6 +30,13 @@ public class Client {
   }
 
   public List<File> getFileSet(){
+    for(File f:fileSet){
+      try {
+        System.out.println(f.getChecksum().toHexString());
+      }catch(NullPointerException e){
+        System.out.println("NULL");
+      }
+    }
     return fileSet;
   }
 }

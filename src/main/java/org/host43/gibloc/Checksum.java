@@ -12,12 +12,13 @@ import java.security.NoSuchAlgorithmException;
  * Created by xost on 12/14/16.
  */
 public class Checksum {
-  private MessageDigest md=null;
+  private MessageDigest md=MessageDigest.getInstance("MD5");
 
   public Checksum(String filename) throws NoSuchAlgorithmException, IOException {
     Path file = Paths.get(filename);
     byte[] buffer = new byte[8192];
-    md = MessageDigest.getInstance("MD5");
+    //md = MessageDigest.getInstance("MD5");
+    //md.reset();
     FileInputStream fis = new FileInputStream(file.toFile());
     while (fis.read(buffer) != -1) {
       md.update(buffer);
@@ -26,7 +27,8 @@ public class Checksum {
   }
 
   public Checksum(byte[] digest) throws NoSuchAlgorithmException {
-    md = MessageDigest.getInstance("MD5");
+    //md = MessageDigest.getInstance("MD5");
+    //md.reset();
     md.digest(digest);
   }
 
@@ -43,6 +45,7 @@ public class Checksum {
   }
 
   public String toHexString() {
+    //походу всё ломает этот метод
     char[] hexSigns = "0123456789ABCDEF".toCharArray();
     byte[] digest = md.digest();
     StringBuilder hexString = new StringBuilder();

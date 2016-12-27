@@ -13,16 +13,16 @@ public class Hashez {
     DbDialog dbd=DbDialog.getInstance();
     Client client=new Client(clientName,dbd.getFileset(clientName));
     List<File> diffFiles=client.recalculate();
-    outFiles(diffFiles);
+    outFiles(client.getFileSet());
   }
 
   private static void outFiles(List<File> lst){
     for(File f:lst) {
-      Checksum cs=f.getChecksum();
-      if(cs!=null)
-        System.out.println(cs.toHexString());
-      else
+      try{
+        System.out.println(f.getChecksum().toHexString());
+      }catch(NullPointerException e){
         System.out.println("NULL");
+      }
     }
   }
 }
