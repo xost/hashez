@@ -4,6 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by stas on 22.12.2016.
@@ -12,6 +13,7 @@ public class DbDialog {
   private static DbDialog instance;
   private Connection dbConn;
   private Statement stmt;
+  Map<String,PreparedStatement> pstmts;
 
   public static synchronized DbDialog getInstance() throws SQLException, ClassNotFoundException {
     if(instance==null)
@@ -23,6 +25,8 @@ public class DbDialog {
     Class.forName("com.mysql.jdbc.Driver");
     dbConn= DriverManager.getConnection("jdbc:mysql://jaba.gib.loc:3306/gibloc","admin","gibloc");
     stmt=dbConn.createStatement();
+    pstmts.put("getClientId",dbConn.prepareStatement("select id from hashez_client where item=?"));
+    pstmts.put("getFile",dbConn.prepareStatement("select item,checksum,state from hasez_file where client_id=?"));
   }
 
   public List<File> getFileset(String client) throws SQLException, NoSuchAlgorithmException {

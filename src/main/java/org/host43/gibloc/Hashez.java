@@ -14,6 +14,8 @@ public class Hashez {
     Client client=new Client(clientName,dbd.getFileset(clientName));
     List<File> diffFiles=client.recalculate();
     outFiles(client.getFileSet());
+    outFiles(client.getFileSet());
+    outFiles(client.getFileSet());
   }
 
   private static void outFiles(List<File> lst){
