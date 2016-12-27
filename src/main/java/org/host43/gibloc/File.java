@@ -13,7 +13,7 @@ public class File {
   private Checksum checksum=null;
   private State state=null;
 
-  public File(String filename,byte[] digest,State state){
+  public File(String filename,byte[] digest,State state) throws NoSuchAlgorithmException {
     this.filename=filename;
     this.state=state;
     switch(this.state){
@@ -48,9 +48,11 @@ public class File {
       state=State.FILESYSTEMERROR;
       return this;
     }
-    if(state!=State.CRYPTOERROR &
-        state!=State.FILESYSTEMERROR &
+    if(state!=State.CRYPTOERROR &&
+        state!=State.FILESYSTEMERROR &&
         state!=State.EMPTY){
+      System.out.println(checksum.toHexString());
+      System.out.println(newChs.toHexString());
       if(checksum.equals(newChs)){
         state=State.OK;
         return null;

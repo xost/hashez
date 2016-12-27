@@ -1,30 +1,28 @@
 package org.host43.gibloc;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
  * Created by stas on 15.12.2016.
  */
 public class Hashez {
-  public static void main(String[] args) {
-    List<String> files=Arrays.asList("C:\\autoexec.bat",
-        "C:\\browser.html",
-        "C:\\config.sys");
-    List<File> fileSet=new ArrayList<>();
-    for(String filename:files){
-      fileSet.add(new File(filename,null,State.EMPTY));
-    }
-    Client cl=new Client(fileSet);
-    List<File> diffFiles=cl.recalculate();
-    for(File file:diffFiles){
-      System.out.printf("File \"%s\" is different !\n",file.toString());
+  public static void main(String[] args) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
+    String clientName="xoxland1";
+    DbDialog dbd=DbDialog.getInstance();
+    Client client=new Client(clientName,dbd.getFileset(clientName));
+    List<File> diffFiles=client.recalculate();
+    outFiles(diffFiles);
+  }
+
+  private static void outFiles(List<File> lst){
+    for(File f:lst) {
+      Checksum cs=f.getChecksum();
+      if(cs!=null)
+        System.out.println(cs.toHexString());
+      else
+        System.out.println("NULL");
     }
   }
-  //  for(String s:files){
-  //    Checksum cs=new Checksum(s);
-  //    System.out.println(cs.toHexString());
-  //  }
-  //}
 }

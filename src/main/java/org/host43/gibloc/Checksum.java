@@ -25,8 +25,9 @@ public class Checksum {
     fis.close();
   }
 
-  public Checksum(byte[] digest) {
-      md.digest(digest);
+  public Checksum(byte[] digest) throws NoSuchAlgorithmException {
+    md = MessageDigest.getInstance("MD5");
+    md.digest(digest);
   }
 
   public byte[] getDigest() {

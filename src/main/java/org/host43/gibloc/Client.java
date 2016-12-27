@@ -23,10 +23,13 @@ public class Client {
     List<File> diffFiles=new ArrayList<>();
     for(File file:fileSet){
       File old=file.calculate();
-      if(old!=null){
+      if(old!=null)
         diffFiles.add(old);
-      }
     }
     return diffFiles;
+  }
+
+  public List<File> getFileSet(){
+    return fileSet;
   }
 }
