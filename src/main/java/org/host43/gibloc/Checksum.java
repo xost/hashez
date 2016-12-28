@@ -11,43 +11,41 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by xost on 12/14/16.
  */
-public class Checksum {
-  private MessageDigest md=MessageDigest.getInstance("MD5");
+class Checksum {
+  byte[] digest;
 
-  public Checksum(String filename) throws NoSuchAlgorithmException, IOException {
+  Checksum(String filename) throws NoSuchAlgorithmException, IOException {
     Path file = Paths.get(filename);
     byte[] buffer = new byte[8192];
-    //md = MessageDigest.getInstance("MD5");
-    //md.reset();
+    MessageDigest md = MessageDigest.getInstance("MD5");
     FileInputStream fis = new FileInputStream(file.toFile());
     while (fis.read(buffer) != -1) {
       md.update(buffer);
     }
+    digest=md.digest();
     fis.close();
   }
 
-  public Checksum(byte[] digest) throws NoSuchAlgorithmException {
-    //md = MessageDigest.getInstance("MD5");
-    //md.reset();
-    md.digest(digest);
+  Checksum(byte[] digest) throws NoSuchAlgorithmException {
+    MessageDigest md = MessageDigest.getInstance("MD5");
+    this.digest=md.digest(digest);
   }
 
-  public byte[] getDigest() {
-    return md.digest();
+  byte[] getDigest() {
+    return digest;
   }
 
-  public boolean equals(byte[] right) {
-    return MessageDigest.isEqual(md.digest(), right);
+  boolean equals(byte[] right) {
+    return MessageDigest.isEqual(digest, right);
   }
 
-  public boolean equals(Checksum right) {
+  boolean equals(Checksum right) {
     return equals(right.getDigest());
   }
 
-  public String toHexString() {
-    //походу всё ломает этот метод
+  String toHexString() {
     char[] hexSigns = "0123456789ABCDEF".toCharArray();
-    byte[] digest = md.digest();
+    byte[] digest = getDigest();
     StringBuilder hexString = new StringBuilder();
     char high;
     char low;

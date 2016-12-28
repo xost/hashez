@@ -1,42 +1,51 @@
 package org.host43.gibloc;
 
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by stas on 16.12.2016.
  */
-public class Client {
+class Client {
 
-  private String client;
+  private int clientId;
   private List<File> fileSet;
-  public Client(String client,List<File> fileSet){
-      this.client=client;
-      this.fileSet=fileSet;
+  private List<File> diffFiles;
+
+  Client(String client,DbDialog dbd) throws ClientNotFoundException {
+    try {
+      clientId = dbd.getClientId(client);
+      fileSet = dbd.getFileSet(clientId);
+    }catch(NoSuchAlgorithmException | SQLException e){
+      throw new ClientNotFoundException();
+    }
   }
 
-  public Client(String client){
-    List<File> fileSet=null;
-  }
-
-  public List<File> recalculate() {
+  void recalculate() {
     List<File> diffFiles=new ArrayList<>();
     for(File file:fileSet){
       File old=file.calculate();
       if(old!=null)
         diffFiles.add(old);
     }
+    this.diffFiles=diffFiles;
+  }
+
+  List<File> getFileSet(){
+    return fileSet;
+  }
+
+  List<File> getDiffFiles(){
     return diffFiles;
   }
 
-  public List<File> getFileSet(){
-    for(File f:fileSet){
-      try {
-        System.out.println(f.getChecksum().toHexString());
-      }catch(NullPointerException e){
-        System.out.println("NULL");
-      }
+  void update(DbDialog dbd){
+    List<File>failFiles=dbd.update(clientId,diffFiles);
+    if(!failFiles.isEmpty()){
+      for(File file:failFiles)
+        System.out.println(file.toString());
     }
-    return fileSet;
   }
 }

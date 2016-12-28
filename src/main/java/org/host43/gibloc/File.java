@@ -11,7 +11,7 @@ public class File {
   private Checksum checksum=null;
   private State state=null;
 
-  public File(String filename,byte[] digest,State state) throws NoSuchAlgorithmException {
+  File(String filename,byte[] digest,State state) throws NoSuchAlgorithmException {
     this.filename=filename;
     this.state=state;
     switch(this.state){
@@ -36,7 +36,7 @@ public class File {
   }
 
   public File calculate(){
-    Checksum newChs= null;
+    Checksum newChs;
     try{
       newChs=new Checksum(filename);
     }catch(NoSuchAlgorithmException e){
@@ -56,7 +56,6 @@ public class File {
     }
     state=State.UPDATED;
     checksum=newChs;
-    System.out.println(checksum.toHexString());
     return this;
   }
 }
