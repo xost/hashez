@@ -18,6 +18,7 @@ class Checksum {
     Path file = Paths.get(filename);
     byte[] buffer = new byte[8192];
     MessageDigest md = MessageDigest.getInstance("MD5");
+    md.reset();
     FileInputStream fis = new FileInputStream(file.toFile());
     while (fis.read(buffer) != -1) {
       md.update(buffer);
@@ -28,6 +29,7 @@ class Checksum {
 
   Checksum(byte[] digest) throws NoSuchAlgorithmException {
     MessageDigest md = MessageDigest.getInstance("MD5");
+    md.reset();
     this.digest=md.digest(digest);
   }
 
