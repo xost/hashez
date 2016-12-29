@@ -26,7 +26,7 @@ class Client {
   void recalculate() {
     List<File> diffFiles=new ArrayList<>();
     for(File file:fileSet){
-      File old=file.calculate();
+      File old=file.calculate2();
       if(old!=null)
         diffFiles.add(old);
     }

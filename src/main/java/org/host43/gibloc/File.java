@@ -14,12 +14,7 @@ public class File {
   File(String filename,byte[] digest,State state) throws NoSuchAlgorithmException {
     this.filename=filename;
     this.state=state;
-    switch(this.state){
-      case OK:
-      case UPDATED:
-        this.checksum=new Checksum(digest);
-        break;
-    }
+    this.checksum=new Checksum(digest);
   }
 
   @Override
@@ -27,15 +22,15 @@ public class File {
     return filename;
   }
 
-  public Checksum getChecksum(){
+  Checksum getChecksum(){
     return checksum;
   }
 
-  public State getState(){
+  State getState(){
     return state;
   }
 
-  public File calculate(){
+  File calculate(){
     Checksum newChs;
     try{
       newChs=new Checksum(filename);
@@ -50,12 +45,41 @@ public class File {
         state!=State.FILESYSTEMERROR &&
         state!=State.EMPTY){
       if(checksum.equals(newChs)){
-        state=State.OK;
-        return null;
+        if(state==State.UPDATED){
+          state= State.OK;
+          return this;
+        }else{
+          return null;
+        }
       }
     }
     state=State.UPDATED;
     checksum=newChs;
+    return this;
+  }
+
+  File calculate2() {
+    State newSt=State.OK;
+    Checksum newChs=new Checksum((byte[])null);
+    try{
+      newChs=new Checksum(filename);
+    }catch(IOException e){
+      newSt=State.FILESYSTEMERROR;
+    } catch (NoSuchAlgorithmException e) {
+      newSt=State.CRYPTOERROR;
+    }
+    if(checksum.equals(newChs)){
+      if(state==newSt)
+        return null;
+      else
+        state=newSt;
+    }else{
+      checksum=newChs;
+      if(newSt==State.OK)
+        state=State.UPDATED;
+      else
+        state=newSt;
+    }
     return this;
   }
 }

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 /**
  * Created by xost on 12/14/16.
@@ -27,22 +28,16 @@ class Checksum {
     fis.close();
   }
 
-  Checksum(byte[] digest) throws NoSuchAlgorithmException {
-    MessageDigest md = MessageDigest.getInstance("MD5");
-    md.reset();
-    this.digest=md.digest(digest);
+  Checksum(byte[] digest) {
+    this.digest=digest;
   }
 
   byte[] getDigest() {
     return digest;
   }
 
-  boolean equals(byte[] right) {
-    return MessageDigest.isEqual(digest, right);
-  }
-
   boolean equals(Checksum right) {
-    return equals(right.getDigest());
+    return Arrays.equals(digest,right.getDigest());
   }
 
   String toHexString() {
