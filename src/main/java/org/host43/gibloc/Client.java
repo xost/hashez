@@ -10,17 +10,20 @@ import java.util.List;
  */
 class Client {
 
-  private int clientId;
+  private String client;
   private List<File> fileSet;
   private List<File> diffFiles;
 
   Client(String client,DbDialog dbd) throws ClientNotFoundException {
     try {
-      clientId = dbd.getClientId(client);
-      fileSet = dbd.getFileSet(clientId);
+      fileSet = dbd.getFileSet(client);
     }catch(NoSuchAlgorithmException | SQLException e){
       throw new ClientNotFoundException();
     }
+  }
+
+  Client(String client,List<String> filenNames){
+
   }
 
   void recalculate() {
@@ -42,7 +45,7 @@ class Client {
   }
 
   void update(DbDialog dbd){
-    List<File>failFiles=dbd.update(clientId,diffFiles);
+    List<File>failFiles=dbd.update(client,diffFiles);
     if(!failFiles.isEmpty()){
       for(File file:failFiles)
         System.out.println(file.toString());

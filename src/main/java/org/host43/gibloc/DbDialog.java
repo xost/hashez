@@ -31,10 +31,15 @@ public class DbDialog {
     pstmts.put("update",dbConn.prepareStatement("update hashez_file set checksum=?,state=? where client_id=? and item=?"));
   }
 
-  List<File> getFileSet(int clientId) throws SQLException, NoSuchAlgorithmException {
+  List<File> getFileSet(String client) throws SQLException, NoSuchAlgorithmException {
     List<File> fileSet=new ArrayList<>();
     PreparedStatement pstmt = pstmts.get("getFileSet");
-    pstmt.setInt(1,clientId);
+    try{
+      int clientId=getClientId(client);
+      pstmt.setInt(1,clientId);
+    }catch(SQLException e){
+      return fileSet;
+    }
     if (pstmt.execute()) {
       ResultSet rs = pstmt.getResultSet();
       String filename;
@@ -51,10 +56,11 @@ public class DbDialog {
     return null;
   }
   //Возвращаем список файлов которые не удалось обновить
-  List<File> update(int clientId, List<File> fileSet) {
+  List<File> update(String client, List<File> fileSet) {
     List<File> failFiles=new ArrayList<>();
     PreparedStatement pstmt=pstmts.get("update");
     try {
+      int clientId=getClientId(client);
       pstmt.setInt(3, clientId);
     }catch(SQLException e){
       return fileSet;
@@ -79,7 +85,7 @@ public class DbDialog {
     return failFiles;
   }
 
-  int getClientId(String client) throws SQLException {
+  private int getClientId(String client) throws SQLException {
     PreparedStatement pstmt=pstmts.get("getClientId");
     pstmt.setString(1,client);
     if(pstmt.execute()) {

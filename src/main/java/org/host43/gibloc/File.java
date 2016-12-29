@@ -17,6 +17,19 @@ public class File {
     this.checksum=new Checksum(digest);
   }
 
+  File(String filename){
+    this.filename=filename;
+    state=State.OK;
+    checksum=new Checksum((byte[]) null);
+    try{
+      checksum=new Checksum(filename);
+    } catch (NoSuchAlgorithmException e) {
+      state=State.CRYPTOERROR;
+    } catch (IOException e) {
+      state=State.FILESYSTEMERROR;
+    }
+  }
+
   @Override
   public String toString(){
     return filename;
