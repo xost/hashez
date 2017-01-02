@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by stas on 16.12.2016.
  */
-public class File {
+class File {
   private String filename=null;
   private Checksum checksum=null;
   private State state=null;

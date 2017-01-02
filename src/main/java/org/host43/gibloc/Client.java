@@ -10,20 +10,21 @@ import java.util.List;
  */
 class Client {
 
-  private String client;
+  private int clientId;
   private List<File> fileSet;
   private List<File> diffFiles;
 
-  Client(String client,DbDialog dbd) throws ClientNotFoundException {
-    try {
-      fileSet = dbd.getFileSet(client);
-    }catch(NoSuchAlgorithmException | SQLException e){
-      throw new ClientNotFoundException();
-    }
+  Client(String client,DbDialog dbd) throws ClientNotFoundException, SQLException, NoSuchAlgorithmException {
+    clientId=dbd.getClientId(client);
+    fileSet = dbd.getFileSet(clientId);
   }
 
-  Client(String client,List<String> filenNames){
-
+  Client(String client,DbDialog dbd,List<String> fileNames) throws SQLException {
+    this.clientId=dbd.getClientId(client);
+    fileSet=new ArrayList<>();
+    for(String fileName:fileNames){
+      fileSet.add(new File(fileName));
+    }
   }
 
   void recalculate() {
@@ -44,11 +45,18 @@ class Client {
     return diffFiles;
   }
 
-  void update(DbDialog dbd){
-    List<File>failFiles=dbd.update(client,diffFiles);
-    if(!failFiles.isEmpty()){
-      for(File file:failFiles)
-        System.out.println(file.toString());
+  List<File> update(DbDialog dbd) throws SQLException {
+    //Если clientId==-1 выбросить исключение о том что клиент не существует
+    List<File>failFiles=dbd.update(clientId,diffFiles);
+    return failFiles;
+  }
+
+  void create(String client,String descr,DbDialog dbd) throws ClientCreationException {
+    try {
+      clientId=dbd.newCli(client,descr);
+      dbd.newFileSet(clientId,fileSet);
+    } catch (SQLException e) {
+      throw new ClientCreationException("Client \""+client+"\" creations error !!!");
     }
   }
 }
