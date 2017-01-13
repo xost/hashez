@@ -10,9 +10,9 @@ import java.util.List;
  */
 class Client {
 
-  private int clientId;
-  private List<File> fileSet;
-  private List<File> diffFiles;
+  private int clientId=-1;
+  private List<File> fileSet=null;
+  private List<File> diffFiles=null;
 
   Client(String client,DbDialog dbd) throws ClientNotFoundException, SQLException, NoSuchAlgorithmException {
     clientId=dbd.getClientId(client);
@@ -41,8 +41,22 @@ class Client {
     return fileSet;
   }
 
+  void setFileSet(List<File> fileSet){
+    this.fileSet=fileSet;
+    recalculate();
+  }
+
   List<File> getDiffFiles(){
     return diffFiles;
+  }
+
+  void save(DbDialog dbd){
+    //dbd.save();
+  }
+
+  void reset(DbDialog dbd){
+    //dbd.newEvent(eventState=CHECK);
+    //dbd.reset();
   }
 
   List<File> update(DbDialog dbd) throws SQLException {
@@ -56,7 +70,10 @@ class Client {
       clientId=dbd.newCli(client,descr);
       dbd.newFileSet(clientId,fileSet);
     } catch (SQLException e) {
-      throw new ClientCreationException("Client \""+client+"\" creations error !!!");
+      throw new ClientCreationException("Client \""+client+"\" creation error !!!");
     }
   }
 }
+
+//1. update (в model(File) новый fileSet в model(Check) - diffFileSet после чего diffFileSet очистить event - update)
+//2. check (diffFileSet -> model(Check) , diffFileSet - empty )

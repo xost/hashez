@@ -1,0 +1,11 @@
+1. Check
+  1.1. update table 'hashez_diff'. save in it diffFileSet.
+  1.2. eventState='CHECK' or 'FAIL'
+2. Update
+  2.1. get original fileSet 'storedFileSet' from the table 'hashes_file'.
+  2.2. compare filesets 'storedFileSet' and 'fileSet'
+  2.3. update table 'hashez_file'.
+       insert new files as NEW.
+       delete files that is not exists in new fileSet.
+       update same files as UPDATE or OK
+3. Save

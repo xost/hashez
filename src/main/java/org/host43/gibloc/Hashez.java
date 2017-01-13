@@ -11,20 +11,24 @@ import java.util.List;
  */
 public class Hashez {
   public static void main(String[] args) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException, ClientNotFoundException, ClientCreationException {
-    String clientName="xoxland";
+    String clientName="xoxland1";
     DbDialog dbd=DbDialog.getInstance();
-    //List<String> fileNames=new ArrayList<>();
-    //fileNames.add("/home/xost/Documents/gr2.odg");
-    //fileNames.add("/home/xost/Documents/kukushka.pdf");
-    //fileNames.add("/home/xost/Downloads/ETicket.pdf");
-    //fileNames.add("/home/xost/Downloads/programmers_way.pdf");
-    //fileNames.add("/home/xost/PDF");
+    List<File> fileSet=new ArrayList<>();
+    fileSet.add(new File("/home/xost/Documents/gr2.odg"));
+    fileSet.add(new File("/home/xost/Documents/kukushka.pdf"));
+    fileSet.add(new File("/home/xost/Downloads/ETicket.pdf"));
+    fileSet.add(new File("/home/xost/Downloads/programmers_way.pdf"));
+    fileSet.add(new File("/home/xost/PDF"));
     //Client client=new Client(clientName,dbd,fileNames);
     Client client=new Client(clientName,dbd);
     client.recalculate();
     outFiles(client.getFileSet());
+    System.out.println();
     outFiles(client.getDiffFiles());
     client.update(dbd);
+    client.setFileSet(fileSet);
+    outFiles(client.getFileSet());
+    outFiles(client.update(dbd));
   }
 
   private static void outFiles(List<File> lst){

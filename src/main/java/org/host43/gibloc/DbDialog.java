@@ -25,15 +25,15 @@ class DbDialog {
     Connection dbConn= DriverManager.getConnection("jdbc:mysql://jaba.gib.loc:3306/gibloc","admin","gibloc");
     pstmts=new HashMap<>();
     pstmts.put("getClientId",dbConn.prepareStatement(
-        "select max(id) from hashez_client where client=?"));
+        "select max(id) from hashez_client where item=?"));
     pstmts.put("getFileSet",dbConn.prepareStatement(
-        "select path,checksum,state from hashez_file where client_id=?"));
+        "select item,checksum,state from hashez_file where client_id=?"));
     pstmts.put("update",dbConn.prepareStatement(
-        "update hashez_file set checksum=?,state=?,recalculate=? where client_id=? and path=?"));
+        "update hashez_file set checksum=?,state=?,recalculate=? where client_id=? and item=?"));
     pstmts.put("createCli",dbConn.prepareStatement(
         "insert into hashez_client(client,descr,registration) values(?,?,?)"));
     pstmts.put("createFS",dbConn.prepareStatement(
-        "insert into hashez_file(path,checksum,state,recalculate,client_id) values(?,?,?,?,?)"));
+        "insert into hashez_file(item,checksum,state,recalculate,client_id) values(?,?,?,?,?)"));
   }
 
   List<File> getFileSet(int clientId) throws SQLException, NoSuchAlgorithmException {
@@ -46,7 +46,7 @@ class DbDialog {
       State state;
       byte[] digest;
       while (rs.next()) {
-        filename = rs.getString("path");
+        filename = rs.getString("item");
         state = State.valueOf(rs.getString("state"));
         digest = rs.getBytes("checksum");
         fileSet.add(new File(filename, digest, state));
@@ -55,18 +55,18 @@ class DbDialog {
     }
     return null;
   }
-  List<File> update(int clientId, List<File> fileSet) throws SQLException {
+  List<File> update(int clientId, List<File> fileSet){
     //Возвращаем список файлов которые не удалось обновить
     List<File> failFiles=new ArrayList<>();
     PreparedStatement pstmt=pstmts.get("update");
     try {
       pstmt.setInt(4, clientId);
+      pstmt.setObject(3,(Object)atnow());
     }catch(SQLException e){
       return fileSet;
     }
     State state;
     byte[] digest;
-    pstmt.setObject(3,(Object)atnow());
     for(File file:fileSet){
       state=file.getState();
       if (state==State.UPDATED || state==State.OK)
