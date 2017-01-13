@@ -61,6 +61,9 @@ class Client {
 
   List<File> update(DbDialog dbd) throws SQLException {
     //Если clientId==-1 выбросить исключение о том что клиент не существует
+    //получить хранимый файлсет. сравнить с существующим. новые добавить с состоянием new.
+    // отсутствующие удалить. существующие обновить
+    // рассмотреть возможность обойтись без diffFileSet
     List<File>failFiles=dbd.update(clientId,diffFiles);
     return failFiles;
   }
