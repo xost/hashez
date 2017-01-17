@@ -28,7 +28,6 @@ public class Hashez {
     client.update(dbd);
     client.setFileSet(fileSet);
     outFiles(client.getFileSet());
-    outFiles(client.update(dbd));
   }
 
   private static void outFiles(List<File> lst){

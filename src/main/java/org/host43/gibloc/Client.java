@@ -11,29 +11,36 @@ import java.util.List;
 class Client {
 
   private int clientId=-1;
+  private String clientName;
+  private String descr;
   private List<File> fileSet=null;
   private List<File> diffFiles=null;
+  private boolean fsChanged=false;
 
   Client(String client,DbDialog dbd) throws ClientNotFoundException, SQLException, NoSuchAlgorithmException {
-    clientId=dbd.getClientId(client);
+    clientName=client;
+    clientId=dbd.getClientId(clientName);
+    descr=dbd.getDescription(clientId);
     fileSet = dbd.getFileSet(clientId);
   }
 
-  Client(String client,DbDialog dbd,List<String> fileNames) throws SQLException {
+  Client(String client,String descr,List<String> fileNames,DbDialog dbd) throws SQLException {
     this.clientId=dbd.getClientId(client);
+    this.descr=descr;
     fileSet=new ArrayList<>();
-    for(String fileName:fileNames){
-      fileSet.add(new File(fileName));
-    }
+    fileNames.forEach(fileName->
+        fileSet.add(new File(fileName))
+    );
+    fsChanged=true;
   }
 
   void recalculate() {
     List<File> diffFiles=new ArrayList<>();
-    for(File file:fileSet){
+    fileSet.forEach(file->{
       File old=file.calculate2();
       if(old!=null)
-        diffFiles.add(old);
-    }
+        diffFiles.add(file);
+    });
     this.diffFiles=diffFiles;
   }
 
@@ -43,29 +50,49 @@ class Client {
 
   void setFileSet(List<File> fileSet){
     this.fileSet=fileSet;
-    recalculate();
+    fsChanged=true;
   }
 
   List<File> getDiffFiles(){
     return diffFiles;
   }
 
-  void save(DbDialog dbd){
-    //dbd.save();
+  void update(DbDialog dbd) throws SQLException, NoSuchAlgorithmException {
+    //List<File>failFiles=dbd.update(clientId,diffFiles);
   }
 
-  void reset(DbDialog dbd){
-    //dbd.newEvent(eventState=CHECK);
-    //dbd.reset();
+  private boolean compareWithStored(DbDialog dbd) throws SQLException, NoSuchAlgorithmException {
+    List<File> stored=dbd.getFileSet(clientId);
+    boolean isEquals=false;
+    if(stored.size()==fileSet.size()){
+      for(File left:fileSet){
+        boolean f=false;
+        for(File right:stored){
+          if(left.theSame(right)){
+            f=true;
+            break;
+          }
+        }
+        isEquals=f;
+      }
+    }else{
+      isEquals=false;
+    }
+    return isEquals;
   }
 
-  List<File> update(DbDialog dbd) throws SQLException {
-    //Если clientId==-1 выбросить исключение о том что клиент не существует
-    //получить хранимый файлсет. сравнить с существующим. новые добавить с состоянием new.
-    // отсутствующие удалить. существующие обновить
-    // рассмотреть возможность обойтись без diffFileSet
-    List<File>failFiles=dbd.update(clientId,diffFiles);
-    return failFiles;
+  void newFileSet(DbDialog dbd) throws SQLException {
+    if(fsChanged==true){
+      try {
+        clientId = dbd.newCli(clientName, descr);
+        fileSet = dbd.getFileSet(clientId);
+      }catch(SQLException | NoSuchAlgorithmException e){
+        throw new SQLException(e);
+      }
+      dbd.newEvent(clientId,eventType.NEWCLIENT,Result.OK);
+      dbd.newEvent(clientId,eventType.NEWFILESET,Result.OK);
+      fsChanged=false;
+    }
   }
 
   void create(String client,String descr,DbDialog dbd) throws ClientCreationException {
@@ -77,6 +104,3 @@ class Client {
     }
   }
 }
-
-//1. update (в model(File) новый fileSet в model(Check) - diffFileSet после чего diffFileSet очистить event - update)
-//2. check (diffFileSet -> model(Check) , diffFileSet - empty )

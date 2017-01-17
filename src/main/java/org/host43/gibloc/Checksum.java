@@ -24,7 +24,7 @@ class Checksum {
     while (fis.read(buffer) != -1) {
       md.update(buffer);
     }
-    digest=md.digest();
+    digest = md.digest();
     fis.close();
   }
 

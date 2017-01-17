@@ -34,6 +34,26 @@ class DbDialog {
         "insert into hashez_client(client,descr,registration) values(?,?,?)"));
     pstmts.put("createFS",dbConn.prepareStatement(
         "insert into hashez_file(item,checksum,state,recalculate,client_id) values(?,?,?,?,?)"));
+    pstmts.put("clean",dbConn.prepareStatement(
+        "delete from hashez_file where client_id=?"));
+    pstmts.put("descr",dbConn.prepareStatement(
+        "select descr from hashez_client where id=?"));
+    pstmts.put("newEvent",dbConn.prepareStatement(
+        "insert into hashez_event (client_id,eType,result,lasttime) values(?,?,?,?)"));
+  }
+
+  String getDescription(int clientId){
+    PreparedStatement pstmt=pstmts.get("descr");
+    String descr="";
+    try{
+      pstmt.setInt(1,clientId);
+      pstmt.execute();
+      ResultSet rs=pstmt.getResultSet();
+      while(rs.next()){
+        descr=rs.getString("descr");
+      }
+    }catch(SQLException ignored){}
+    return descr;
   }
 
   List<File> getFileSet(int clientId) throws SQLException, NoSuchAlgorithmException {
@@ -85,6 +105,14 @@ class DbDialog {
     return failFiles;
   }
 
+  void clean(int clientId){
+    PreparedStatement pstmt=pstmts.get("clean");
+    try{
+      pstmt.setInt(1,clientId);
+      pstmt.execute();
+    }catch(SQLException ignored){}
+  }
+
   int newCli(String clientName,String descr) throws SQLException {
     PreparedStatement pstmt=pstmts.get("createCli");
     pstmt.setString(1,clientName);
@@ -111,9 +139,13 @@ class DbDialog {
     }
   }
 
-  private Timestamp atnow(){
-    Calendar now=Calendar.getInstance();
-    return new Timestamp(now.getTimeInMillis());
+  void newEvent(int clientId,eventType type, Result result) throws SQLException {
+    PreparedStatement pstmt=pstmts.get("newEvent");
+    pstmt.setInt(1,clientId);
+    pstmt.setString(2,type.toString());
+    pstmt.setString(3,result.toString());
+    pstmt.setObject(4,(Object)atnow());
+    pstmt.execute();
   }
 
   int getClientId(String client) throws SQLException {
@@ -126,5 +158,10 @@ class DbDialog {
         id = rs.getInt("max(id)");
       return id;
     }else return -1;
+  }
+
+  private Timestamp atnow(){
+    Calendar now=Calendar.getInstance();
+    return new Timestamp(now.getTimeInMillis());
   }
 }
