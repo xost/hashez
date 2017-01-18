@@ -1,6 +1,6 @@
 package org.host43.gibloc;
 
-public enum eventType{
+enum eventType{
   CHECK,
   UPDATE,
   NEWCLIENT,

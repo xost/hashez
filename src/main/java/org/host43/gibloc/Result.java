@@ -1,6 +1,6 @@
 package org.host43.gibloc;
 
-public enum Result{
+enum Result{
   OK,
   FAIL,
   ERROR

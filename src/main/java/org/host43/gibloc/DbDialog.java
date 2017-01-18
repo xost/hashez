@@ -40,6 +40,8 @@ class DbDialog {
         "select descr from hashez_client where id=?"));
     pstmts.put("newEvent",dbConn.prepareStatement(
         "insert into hashez_event (client_id,eType,result,lasttime) values(?,?,?,?)"));
+    pstmts.put("lastEvent",dbConn.prepareStatement(
+        "select max(id) from hashez_event where client_id=?"));
   }
 
   String getDescription(int clientId){
@@ -139,13 +141,14 @@ class DbDialog {
     }
   }
 
-  void newEvent(int clientId,eventType type, Result result) throws SQLException {
+  int newEvent(int clientId,eventType type, Result result) throws SQLException {
     PreparedStatement pstmt=pstmts.get("newEvent");
     pstmt.setInt(1,clientId);
     pstmt.setString(2,type.toString());
     pstmt.setString(3,result.toString());
     pstmt.setObject(4,(Object)atnow());
     pstmt.execute();
+    return lastEvent(clientId);
   }
 
   int getClientId(String client) throws SQLException {
@@ -158,6 +161,19 @@ class DbDialog {
         id = rs.getInt("max(id)");
       return id;
     }else return -1;
+  }
+
+  int lastEvent(int clientId) throws SQLException {
+    PreparedStatement pstmt=pstmts.get("lastEvent");
+    pstmt.setInt(1,clientId);
+    if(pstmt.execute()){
+      ResultSet rs=pstmt.getResultSet();
+      int id=-1;
+      if(rs.next())
+        rs.getInt("max(id)");
+      return id;
+    }else
+      return -1;
   }
 
   private Timestamp atnow(){

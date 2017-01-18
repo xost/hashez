@@ -15,24 +15,27 @@ class Client {
   private String descr;
   private List<File> fileSet=null;
   private List<File> diffFiles=null;
+  private int lastEvent;
   private boolean fsChanged=false;
+  private boolean checked=false;
 
   Client(String client,DbDialog dbd) throws ClientNotFoundException, SQLException, NoSuchAlgorithmException {
     clientName=client;
     clientId=dbd.getClientId(clientName);
     descr=dbd.getDescription(clientId);
     fileSet = dbd.getFileSet(clientId);
+    lastEvent = dbd.lastEvent(clientId);
   }
 
-  Client(String client,String descr,List<String> fileNames,DbDialog dbd) throws SQLException {
-    this.clientId=dbd.getClientId(client);
-    this.descr=descr;
-    fileSet=new ArrayList<>();
-    fileNames.forEach(fileName->
-        fileSet.add(new File(fileName))
-    );
-    fsChanged=true;
-  }
+  //Client(String client,String descr,List<String> fileNames,DbDialog dbd) throws SQLException {
+  //  this.clientId=dbd.getClientId(client);
+  //  this.descr=descr;
+  //  fileSet=new ArrayList<>();
+  //  fileNames.forEach(fileName->
+  //      fileSet.add(new File(fileName))
+  //  );
+  //  fsChanged=true;
+  //}
 
   void recalculate() {
     List<File> diffFiles=new ArrayList<>();
@@ -42,6 +45,7 @@ class Client {
         diffFiles.add(file);
     });
     this.diffFiles=diffFiles;
+    checked=true;
   }
 
   List<File> getFileSet(){
@@ -49,16 +53,23 @@ class Client {
   }
 
   void setFileSet(List<File> fileSet){
-    this.fileSet=fileSet;
-    fsChanged=true;
+    fsChanged=false;
+    this.fileSet.forEach(left->{
+      boolean eq=false;
+      for(File right:fileSet){
+        if(left.theSame(right)){
+          eq=true;
+          break;
+        }
+        fsChanged=eq;
+      }
+    });
+    if(fsChanged)
+      this.fileSet=fileSet;
   }
 
   List<File> getDiffFiles(){
     return diffFiles;
-  }
-
-  void update(DbDialog dbd) throws SQLException, NoSuchAlgorithmException {
-    //List<File>failFiles=dbd.update(clientId,diffFiles);
   }
 
   private boolean compareWithStored(DbDialog dbd) throws SQLException, NoSuchAlgorithmException {
@@ -81,18 +92,38 @@ class Client {
     return isEquals;
   }
 
-  void newFileSet(DbDialog dbd) throws SQLException {
+  void update(DbDialog dbd) throws SQLException {
     if(fsChanged==true){
       try {
         clientId = dbd.newCli(clientName, descr);
-        fileSet = dbd.getFileSet(clientId);
+        dbd.newFileSet(clientId,fileSet);
       }catch(SQLException | NoSuchAlgorithmException e){
         throw new SQLException(e);
       }
-      dbd.newEvent(clientId,eventType.NEWCLIENT,Result.OK);
-      dbd.newEvent(clientId,eventType.NEWFILESET,Result.OK);
+      lastEvent=dbd.newEvent(clientId,eventType.NEWCLIENT,Result.OK);
+      lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET,Result.OK);
       fsChanged=false;
+    }else{
+      if(checked){
+        dbd.update(clientId,diffFiles);
+        Result result=Result.FAIL;
+        if(checkIsOK()){
+          result=Result.OK;
+        }
+        lastEvent=dbd.newEvent(clientId,eventType.CHECK,result);
+      }
     }
+  }
+
+  private boolean checkIsOK(){
+    boolean isOK=true;
+    State state;
+    for(File file:diffFiles){
+      state=file.getState();
+      if(state!=State.OK)
+        isOK=false;
+    }
+    return isOK;
   }
 
   void create(String client,String descr,DbDialog dbd) throws ClientCreationException {
