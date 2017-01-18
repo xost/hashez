@@ -28,8 +28,12 @@ class DbDialog {
         "select max(id) from hashez_client where item=?"));
     pstmts.put("getFileSet",dbConn.prepareStatement(
         "select item,checksum,state from hashez_file where client_id=?"));
+    pstmts.put("getFileId",dbConn.prepareStatement(
+        "select id from hashez_file where client_id=? and item=?"));
     pstmts.put("update",dbConn.prepareStatement(
         "update hashez_file set checksum=?,state=?,recalculate=? where client_id=? and item=?"));
+    pstmts.put("updateDiff",dbConn.prepareStatement(
+        "insert into hashez_diff(event_id,file_id,checktime,state) values (?,?,?,?)"));
     pstmts.put("createCli",dbConn.prepareStatement(
         "insert into hashez_client(client,descr,registration) values(?,?,?)"));
     pstmts.put("createFS",dbConn.prepareStatement(
@@ -77,7 +81,7 @@ class DbDialog {
     }
     return null;
   }
-  List<File> update(int clientId, List<File> fileSet){
+  List<File> updateFileSet(int clientId, List<File> fileSet){
     //Возвращаем список файлов которые не удалось обновить
     List<File> failFiles=new ArrayList<>();
     PreparedStatement pstmt=pstmts.get("update");
@@ -105,6 +109,11 @@ class DbDialog {
       }
     }
     return failFiles;
+  }
+
+  private int getFileId(int clientId, File file) throws SQLException {
+    PreparedStatement pstmt=pstmts.get("getFileId");
+    pstmt.setInt(1,1);
   }
 
   void clean(int clientId){

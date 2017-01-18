@@ -93,19 +93,26 @@ class Client {
   }
 
   void update(DbDialog dbd) throws SQLException {
-    if(fsChanged==true){
+    if(fsChanged){
       try {
-        clientId = dbd.newCli(clientName, descr);
-        dbd.newFileSet(clientId,fileSet);
-      }catch(SQLException | NoSuchAlgorithmException e){
+        clientId=dbd.newCli(clientName, descr);
+        lastEvent=dbd.newEvent(clientId,eventType.NEWCLIENT,Result.OK);
+      }catch(SQLException e) {
+        lastEvent = dbd.newEvent(clientId, eventType.NEWCLIENT, Result.FAIL);
         throw new SQLException(e);
       }
-      lastEvent=dbd.newEvent(clientId,eventType.NEWCLIENT,Result.OK);
-      lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET,Result.OK);
+      try{
+        dbd.newFileSet(clientId,fileSet);
+        lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET,Result.OK);
+      }catch(SQLException e){
+        lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, Result.FAIL);
+        throw new SQLException(e);
+      }
       fsChanged=false;
+      checked=false;
     }else{
       if(checked){
-        dbd.update(clientId,diffFiles);
+        dbd.updateFileSet(clientId,diffFiles);
         Result result=Result.FAIL;
         if(checkIsOK()){
           result=Result.OK;
