@@ -27,16 +27,6 @@ class Client {
     lastEvent = dbd.lastEvent(clientId);
   }
 
-  //Client(String client,String descr,List<String> fileNames,DbDialog dbd) throws SQLException {
-  //  this.clientId=dbd.getClientId(client);
-  //  this.descr=descr;
-  //  fileSet=new ArrayList<>();
-  //  fileNames.forEach(fileName->
-  //      fileSet.add(new File(fileName))
-  //  );
-  //  fsChanged=true;
-  //}
-
   void recalculate() {
     List<File> diffFiles=new ArrayList<>();
     fileSet.forEach(file->{
@@ -61,8 +51,8 @@ class Client {
           eq=true;
           break;
         }
-        fsChanged=eq;
       }
+      fsChanged=eq;
     });
     if(fsChanged)
       this.fileSet=fileSet;
@@ -96,28 +86,18 @@ class Client {
     if(fsChanged){
       try {
         clientId=dbd.newCli(clientName, descr);
-        lastEvent=dbd.newEvent(clientId,eventType.NEWCLIENT,Result.OK);
-      }catch(SQLException e) {
-        lastEvent = dbd.newEvent(clientId, eventType.NEWCLIENT, Result.FAIL);
-        throw new SQLException(e);
-      }
-      try{
         dbd.newFileSet(clientId,fileSet);
-        lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET,Result.OK);
-      }catch(SQLException e){
-        lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, Result.FAIL);
+      }catch(SQLException e) {
         throw new SQLException(e);
       }
+      lastEvent=dbd.newEvent(clientId,eventType.NEWCLIENT);
+      lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET);
+
       fsChanged=false;
       checked=false;
     }else{
       if(checked){
         dbd.updateFileSet(clientId,diffFiles);
-        Result result=Result.FAIL;
-        if(checkIsOK()){
-          result=Result.OK;
-        }
-        lastEvent=dbd.newEvent(clientId,eventType.CHECK,result);
       }
     }
   }

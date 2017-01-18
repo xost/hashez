@@ -32,12 +32,12 @@ class DbDialog {
         "select id from hashez_file where client_id=? and item=?"));
     pstmts.put("update",dbConn.prepareStatement(
         "update hashez_file set checksum=?,state=?,recalculate=? where client_id=? and item=?"));
-    pstmts.put("updateDiff",dbConn.prepareStatement(
-        "insert into hashez_diff(event_id,file_id,checktime,state) values (?,?,?,?)"));
+    pstmts.put("saveDiff",dbConn.prepareStatement(
+        "insert into hashez_diff(event_id,client_id,path,state) values (?,?,?,?)"));
     pstmts.put("createCli",dbConn.prepareStatement(
         "insert into hashez_client(client,descr,registration) values(?,?,?)"));
     pstmts.put("createFS",dbConn.prepareStatement(
-        "insert into hashez_file(item,checksum,state,recalculate,client_id) values(?,?,?,?,?)"));
+        "insert into hashez_file(path,fsCount,checksum,state,updated,client_id) values(?,?,?,?,?,?)"));
     pstmts.put("clean",dbConn.prepareStatement(
         "delete from hashez_file where client_id=?"));
     pstmts.put("descr",dbConn.prepareStatement(
@@ -46,6 +46,8 @@ class DbDialog {
         "insert into hashez_event (client_id,eType,result,lasttime) values(?,?,?,?)"));
     pstmts.put("lastEvent",dbConn.prepareStatement(
         "select max(id) from hashez_event where client_id=?"));
+    pstmts.put("getFSCount",dbConn.prepareStatement(
+        "select max(fsCount) from hashez_file where client_id=?"));
   }
 
   String getDescription(int clientId){
@@ -81,6 +83,7 @@ class DbDialog {
     }
     return null;
   }
+
   List<File> updateFileSet(int clientId, List<File> fileSet){
     //Возвращаем список файлов которые не удалось обновить
     List<File> failFiles=new ArrayList<>();
@@ -111,17 +114,15 @@ class DbDialog {
     return failFiles;
   }
 
-  private int getFileId(int clientId, File file) throws SQLException {
-    PreparedStatement pstmt=pstmts.get("getFileId");
-    pstmt.setInt(1,1);
-  }
-
-  void clean(int clientId){
-    PreparedStatement pstmt=pstmts.get("clean");
-    try{
-      pstmt.setInt(1,clientId);
+  void saveDiff(int eventId,List<File> fileSet) throws SQLException {
+    //insert into hashez_diff(event_id,path,state) values (?,?,?)
+    PreparedStatement pstmt=pstmts.get("saveDiff");
+    pstmt.setInt(1,eventId);
+    for(File file:fileSet){
+      pstmt.setString(2,file.getFileName());
+      pstmt.setString(3,file.getState().toString());
       pstmt.execute();
-    }catch(SQLException ignored){}
+    }
   }
 
   int newCli(String clientName,String descr) throws SQLException {
@@ -134,27 +135,29 @@ class DbDialog {
   }
 
   void newFileSet(int clientId, List<File> fileSet) throws SQLException {
-    PreparedStatement pstmt=pstmts.get("createFS");
-    pstmt.setObject(4,(Object)atnow());
-    pstmt.setInt(5,clientId);
-    Checksum chS=null;
+    int fsCount=getFSCount(clientId);
+    //path,fsCount,checksum,state,updated,client_id
+    fsCount++;
+    PreparedStatement pstmt=pstmts.get("newFS");
     for(File file:fileSet){
-      pstmt.setString(1,file.toString());
-      chS=file.getChecksum();
-      if(chS!=null)
-        pstmt.setBytes(2,chS.getDigest());
+      pstmt.setString(1,file.getFileName());
+      pstmt.setInt(2,fsCount);
+      Checksum chs=file.getChecksum();
+      if(chs!=null)
+        pstmt.setBytes(3,chs.getDigest());
       else
-        pstmt.setBytes(2,null);
-      pstmt.setString(3,file.getState().toString());
+        pstmt.setBytes(3,null);
+      pstmt.setString(4,file.getState().toString());
+      pstmt.setObject(5,(Object)atnow());
+      pstmt.setInt(6,clientId);
       pstmt.execute();
     }
   }
 
-  int newEvent(int clientId,eventType type, Result result) throws SQLException {
+  int newEvent(int clientId,eventType type) throws SQLException {
     PreparedStatement pstmt=pstmts.get("newEvent");
     pstmt.setInt(1,clientId);
     pstmt.setString(2,type.toString());
-    pstmt.setString(3,result.toString());
     pstmt.setObject(4,(Object)atnow());
     pstmt.execute();
     return lastEvent(clientId);
@@ -170,6 +173,18 @@ class DbDialog {
         id = rs.getInt("max(id)");
       return id;
     }else return -1;
+  }
+
+  int getFSCount(int clientId) throws SQLException {
+    PreparedStatement pstmt=pstmts.get("getFSCount");
+    pstmt.setInt(1,clientId);
+    int fsCount=-1;
+    if(pstmt.execute()) {
+      ResultSet rs=pstmt.getResultSet();
+      if(rs.next())
+        fsCount=rs.getInt("max(fsCount)");
+    }
+    return fsCount;
   }
 
   int lastEvent(int clientId) throws SQLException {

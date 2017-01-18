@@ -47,34 +47,6 @@ class File {
     return state;
   }
 
-  File calculate(){
-    Checksum newChs;
-    try{
-      newChs=new Checksum(filename);
-    }catch(NoSuchAlgorithmException e){
-      state=State.CRYPTOERROR;
-      return this;
-    }catch(IOException e){
-      state=State.FILESYSTEMERROR;
-      return this;
-    }
-    if(state!=State.CRYPTOERROR &&
-        state!=State.FILESYSTEMERROR &&
-        state!=State.EMPTY){
-      if(checksum.equals(newChs)){
-        if(state==State.UPDATED){
-          state= State.OK;
-          return this;
-        }else{
-          return null;
-        }
-      }
-    }
-    state=State.UPDATED;
-    checksum=newChs;
-    return this;
-  }
-
   File calculate2() {
     State newSt=State.OK;
     Checksum newChs=new Checksum((byte[])null);
