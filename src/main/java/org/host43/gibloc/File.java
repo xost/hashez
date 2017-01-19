@@ -11,7 +11,7 @@ class File {
   private Checksum checksum=null;
   private State state=null;
 
-  File(String filename,byte[] digest,State state) throws NoSuchAlgorithmException {
+  File(String filename,byte[] digest,State state){
     this.filename=filename;
     this.state=state;
     this.checksum=new Checksum(digest);
