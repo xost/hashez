@@ -25,7 +25,7 @@ public class Hashez {
     outFiles(client.getFileSet());
     System.out.println();
     outFiles(client.getDiffFiles());
-    client.update(dbd);
+    client.updateFileSet(dbd);
     client.setFileSet(fileSet);
     outFiles(client.getFileSet());
   }

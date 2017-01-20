@@ -25,21 +25,19 @@ class DbDialog {
     Connection dbConn= DriverManager.getConnection("jdbc:mysql://jaba.gib.loc:3306/gibloc","admin","gibloc");
     pstmts=new HashMap<>();
     pstmts.put("getClientId",dbConn.prepareStatement(
-        "select max(id) from hashez_client where item=?"));
+        "select max(id) from hashez_client where client=?"));
     pstmts.put("getFileSet",dbConn.prepareStatement(
-        "select item,checksum,state from hashez_file where client_id=?"));
+        "select path,checksum,state from hashez_file where client_id=?"));
     pstmts.put("getFileId",dbConn.prepareStatement(
-        "select id from hashez_file where client_id=? and item=?"));
-    pstmts.put("update",dbConn.prepareStatement(
-        "update hashez_file set checksum=?,state=?,recalculate=? where client_id=? and item=?"));
+        "select id from hashez_file where client_id=? and path=?"));
+    pstmts.put("updateFileSet",dbConn.prepareStatement(
+        "update hashez_file set checksum=?,state=?,happened=? where client_id=? and path=? and fsCount=?"));
     pstmts.put("saveDiff",dbConn.prepareStatement(
         "insert into hashez_diff(event_id,client_id,path,state) values (?,?,?,?)"));
     pstmts.put("createCli",dbConn.prepareStatement(
         "insert into hashez_client(client,descr,registration) values(?,?,?)"));
-    pstmts.put("createFS",dbConn.prepareStatement(
+    pstmts.put("newFileSet",dbConn.prepareStatement(
         "insert into hashez_file(path,fsCount,checksum,state,updated,client_id) values(?,?,?,?,?,?)"));
-    pstmts.put("clean",dbConn.prepareStatement(
-        "delete from hashez_file where client_id=?"));
     pstmts.put("descr",dbConn.prepareStatement(
         "select descr from hashez_client where id=?"));
     pstmts.put("newEvent",dbConn.prepareStatement(
@@ -74,7 +72,7 @@ class DbDialog {
       State state;
       byte[] digest;
       while (rs.next()) {
-        filename = rs.getString("item");
+        filename = rs.getString("path");
         state = State.valueOf(rs.getString("state"));
         digest = rs.getBytes("checksum");
         fileSet.add(new File(filename, digest, state));
@@ -84,13 +82,15 @@ class DbDialog {
     return null;
   }
 
-  List<File> updateFileSet(int clientId, List<File> fileSet){
+  List<File> updateFileSet(int clientId, int fsCount, List<File> fileSet){
     //Возвращаем список файлов которые не удалось обновить
+    //update hashez_file set checksum=?,state=?,happened=? where client_id=? and path=? and fsCount=?
     List<File> failFiles=new ArrayList<>();
-    PreparedStatement pstmt=pstmts.get("update");
+    PreparedStatement pstmt=pstmts.get("updateFileSet");
     try {
       pstmt.setInt(4, clientId);
       pstmt.setObject(3,(Object)atnow());
+      pstmt.setInt(6,fsCount);
     }catch(SQLException e){
       return fileSet;
     }
@@ -134,22 +134,20 @@ class DbDialog {
     return getClientId(clientName);
   }
 
-  void newFileSet(int clientId, List<File> fileSet) throws SQLException {
-    int fsCount=getFSCount(clientId);
+  void newFileSet(int clientId,int fsCount, List<File> fileSet) throws SQLException {
     //path,fsCount,checksum,state,updated,client_id
-    fsCount++;
-    PreparedStatement pstmt=pstmts.get("newFS");
+    PreparedStatement pstmt=pstmts.get("newFileSet");
+    pstmt.setInt(2,fsCount);
+    pstmt.setObject(5,(Object)atnow());
+    pstmt.setInt(6,clientId);
     for(File file:fileSet){
       pstmt.setString(1,file.getFileName());
-      pstmt.setInt(2,fsCount);
       Checksum chs=file.getChecksum();
       if(chs!=null)
         pstmt.setBytes(3,chs.getDigest());
       else
         pstmt.setBytes(3,null);
       pstmt.setString(4,file.getState().toString());
-      pstmt.setObject(5,(Object)atnow());
-      pstmt.setInt(6,clientId);
       pstmt.execute();
     }
   }

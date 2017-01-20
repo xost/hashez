@@ -47,7 +47,8 @@ class File {
     return state;
   }
 
-  File calculate2() {
+  File calculate() {
+    //Переписать !
     State newSt=State.OK;
     Checksum newChs=new Checksum((byte[])null);
     try{

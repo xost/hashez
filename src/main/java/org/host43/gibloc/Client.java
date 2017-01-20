@@ -15,7 +15,8 @@ class Client {
   private String descr;
   private List<File> fileSet=null;
   private List<File> diffFiles=null;
-  private int lastEvent;
+  private int lastEvent=0;
+  private int fsCount=0;
   private boolean fsChanged=false;
   private boolean checked=false;
 
@@ -24,13 +25,14 @@ class Client {
     clientId=dbd.getClientId(clientName);
     descr=dbd.getDescription(clientId);
     fileSet = dbd.getFileSet(clientId);
+    fsCount=dbd.getFSCount(clientId);
     lastEvent = dbd.lastEvent(clientId);
   }
 
   void recalculate() {
     List<File> diffFiles=new ArrayList<>();
     fileSet.forEach(file->{
-      File old=file.calculate2();
+      File old=file.calculate();
       if(old!=null)
         diffFiles.add(file);
     });
@@ -82,23 +84,20 @@ class Client {
     return isEquals;
   }
 
-  void update(DbDialog dbd) throws SQLException {
+  void newFileSet(DbDialog dbd) throws SQLException {
     if(fsChanged){
-      try {
-        clientId=dbd.newCli(clientName, descr);
-        dbd.newFileSet(clientId,fileSet);
-      }catch(SQLException e) {
-        throw new SQLException(e);
-      }
-      lastEvent=dbd.newEvent(clientId,eventType.NEWCLIENT);
       lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET);
+      dbd.newFileSet(clientId,++fsCount,fileSet);
+    }
+  }
 
-      fsChanged=false;
-      checked=false;
-    }else{
-      if(checked){
-        dbd.updateFileSet(clientId,diffFiles);
-      }
+  void updateFileSet(DbDialog dbd) throws SQLException {
+  }
+
+  void saveDiff(DbDialog dbd) throws SQLException {
+    lastEvent=dbd.newEvent(clientId,eventType.CHECK);
+    if(checked){
+      dbd.saveDiff(lastEvent,diffFiles);
     }
   }
 
@@ -113,12 +112,4 @@ class Client {
     return isOK;
   }
 
-  void create(String client,String descr,DbDialog dbd) throws ClientCreationException {
-    try {
-      clientId=dbd.newCli(client,descr);
-      dbd.newFileSet(clientId,fileSet);
-    } catch (SQLException e) {
-      throw new ClientCreationException("Client \""+client+"\" creation error !!!");
-    }
-  }
 }
