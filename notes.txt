@@ -5,7 +5,7 @@
 
 Работа из командной строки:
 1. Новый клиент (newCli)
-  - с передачей списка файлов файлом -in filename
+  - с передачей списка файлов файлом -in filename (сразу посчитать контрольные суммы и сохранить)
   - без передачи списка файлов (fileSet будет пустым)
   - данные задаются конф файлом (-cfg filename) filename(clientName=XXXXXX  description=YYYYYY)
   - данные задаются в строке (-cliName XXXXXX -descr YYYYYY)

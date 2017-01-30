@@ -173,7 +173,7 @@ class DbDialog {
     }else return -1;
   }
 
-  int getFSCount(int clientId) throws SQLException {
+  int getFSId(int clientId) throws SQLException {
     PreparedStatement pstmt=pstmts.get("getFSCount");
     pstmt.setInt(1,clientId);
     int fsCount=-1;

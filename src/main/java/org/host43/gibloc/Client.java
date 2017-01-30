@@ -16,7 +16,7 @@ class Client {
   private List<File> fileSet=null;
   private List<File> diffFiles=null;
   private int lastEvent=0;
-  private int fsCount=0;
+  private int fsId=0;
   private boolean fsChanged=false;
   private boolean checked=false;
 
@@ -25,7 +25,7 @@ class Client {
     clientId=dbd.getClientId(clientName);
     descr=dbd.getDescription(clientId);
     fileSet = dbd.getFileSet(clientId);
-    fsCount=dbd.getFSCount(clientId);
+    fsId=dbd.getFSId(clientId);
     lastEvent = dbd.lastEvent(clientId);
   }
 
@@ -85,9 +85,10 @@ class Client {
   }
 
   void newFileSet(DbDialog dbd) throws SQLException {
+    //неправильно
     if(fsChanged){
       lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET);
-      dbd.newFileSet(clientId,++fsCount,fileSet);
+      dbd.newFileSet(clientId,++fsId,fileSet);
     }
   }
 
