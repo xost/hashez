@@ -14,11 +14,11 @@ public class Hashez {
     String clientName="xoxland1";
     DbDialog dbd=DbDialog.getInstance();
     List<File> fileSet=new ArrayList<>();
-    fileSet.add(new File("/home/xost/Documents/gr2.odg"));
-    fileSet.add(new File("/home/xost/Documents/kukushka.pdf"));
-    fileSet.add(new File("/home/xost/Downloads/ETicket.pdf"));
-    fileSet.add(new File("/home/xost/Downloads/programmers_way.pdf"));
-    fileSet.add(new File("/home/xost/PDF"));
+    //fileSet.add(new File("/home/xost/Documents/gr2.odg"));
+    //fileSet.add(new File("/home/xost/Documents/kukushka.pdf"));
+    //fileSet.add(new File("/home/xost/Downloads/ETicket.pdf"));
+    //fileSet.add(new File("/home/xost/Downloads/programmers_way.pdf"));
+    //fileSet.add(new File("/home/xost/PDF"));
     //Client client=new Client(clientName,dbd,fileNames);
     Client client=new Client(clientName,dbd);
     client.recalculate();
