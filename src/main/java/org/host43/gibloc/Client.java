@@ -16,16 +16,16 @@ class Client {
   private List<File> fileSet=null;
   private List<File> diffFiles=null;
   private int lastEvent=0;
-  private int fsId=0;
+  private int fileSetId=0;
   private boolean fsChanged=false;
   private boolean checked=false;
 
-  Client(String client,DbDialog dbd) throws ClientNotFoundException, SQLException, NoSuchAlgorithmException {
+  Client(String client,DbDialog dbd) throws ClientNotFoundException {
     clientName=client;
     clientId=dbd.getClientId(clientName);
     descr=dbd.getDescription(clientId);
     fileSet = dbd.getFileSet(clientId);
-    fsId=dbd.getFSId(clientId);
+    fileSetId=dbd.getFileSetId(clientId);
     lastEvent = dbd.lastEvent(clientId);
   }
 

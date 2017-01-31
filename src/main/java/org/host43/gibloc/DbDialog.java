@@ -27,25 +27,31 @@ class DbDialog {
     pstmts.put("getClientId",dbConn.prepareStatement(
         "select max(id) from hashez_client where client=?"));
     pstmts.put("getFileSet",dbConn.prepareStatement(
-        "select path,checksum,state from hashez_file where client_id=?"));
+        "select path,checksum,state from hashez_file where fileset_id=?")); //!!!
     pstmts.put("getFileId",dbConn.prepareStatement(
-        "select id from hashez_file where client_id=? and path=?"));
-    pstmts.put("updateFileSet",dbConn.prepareStatement(
-        "update hashez_file set checksum=?,state=?,happened=? where client_id=? and path=? and fsCount=?"));
-    pstmts.put("saveDiff",dbConn.prepareStatement(
-        "insert into hashez_diff(event_id,client_id,path,state) values (?,?,?,?)"));
-    pstmts.put("createCli",dbConn.prepareStatement(
-        "insert into hashez_client(client,descr,registration) values(?,?,?)"));
-    pstmts.put("newFileSet",dbConn.prepareStatement(
-        "insert into hashez_file(path,fsCount,checksum,state,updated,client_id) values(?,?,?,?,?,?)"));
-    pstmts.put("descr",dbConn.prepareStatement(
-        "select descr from hashez_client where id=?"));
-    pstmts.put("newEvent",dbConn.prepareStatement(
-        "insert into hashez_event (client_id,eType,result,lasttime) values(?,?,?,?)"));
+        "select id from hashez_file where fileset_id=? and path=?"));
     pstmts.put("lastEvent",dbConn.prepareStatement(
         "select max(id) from hashez_event where client_id=?"));
-    pstmts.put("getFSCount",dbConn.prepareStatement(
-        "select max(fsCount) from hashez_file where client_id=?"));
+    pstmts.put("getFileSetId",dbConn.prepareStatement(
+        "select max(id) from hashez_fileset where client_id=?"));
+    pstmts.put("descr",dbConn.prepareStatement(
+        "select descr from hashez_client where id=?"));
+    pstmts.put("updateFileSet",dbConn.prepareStatement(
+        "update hashez_file set checksum=?,state=?,happened=? where fileset_id=? and path=?")); //!!!
+    pstmts.put("saveDiff",dbConn.prepareStatement(
+        "insert into hashez_diff(event_id,fileset_id,path,state) values (?,?,?,?)"));//!!!
+    pstmts.put("createCli",dbConn.prepareStatement(
+        "insert into hashez_client(client,descr,registred) values(?,?,?)"));//!!!
+    // два запроса.
+    // 1. создать запить в таблице hashez_fileset
+    // 2. добавить файлы в таблицу hashez_file
+    pstmts.put("newFileSet",dbConn.prepareStatement(
+        "insert into hashez_fileset(registred,client_id) values(?,?)")); //!!!
+    pstmts.put("fillFileSet",dbConn.prepareStatement(
+        "insert into hashez_file(path,fileset_id,checksum,state,updated,client_id) values(?,?,?,?,?,?)"));//!!!
+    //
+    pstmts.put("newEvent",dbConn.prepareStatement(
+        "insert into hashez_event (client_id,eventType,comment,registred) values(?,?,?,?)"));
   }
 
   String getDescription(int clientId){
@@ -62,24 +68,26 @@ class DbDialog {
     return descr;
   }
 
-  List<File> getFileSet(int clientId) throws SQLException, NoSuchAlgorithmException {
+  List<File> getFileSet(int fileSetId) {
     List<File> fileSet=new ArrayList<>();
     PreparedStatement pstmt = pstmts.get("getFileSet");
-    pstmt.setInt(1,clientId);
-    if (pstmt.execute()) {
-      ResultSet rs = pstmt.getResultSet();
-      String filename;
-      State state;
-      byte[] digest;
-      while (rs.next()) {
-        filename = rs.getString("path");
-        state = State.valueOf(rs.getString("state"));
-        digest = rs.getBytes("checksum");
-        fileSet.add(new File(filename, digest, state));
+    try {
+      pstmt.setInt(1, fileSetId);
+      if (pstmt.execute()) {
+        ResultSet rs = pstmt.getResultSet();
+        String filename;
+        State state;
+        byte[] digest;
+        while (rs.next()) {
+          filename = rs.getString("path");
+          state = State.valueOf(rs.getString("state"));
+          digest = rs.getBytes("checksum");
+          fileSet.add(new File(filename, digest, state));
+        }
+        return fileSet;
       }
-      return fileSet;
-    }
-    return null;
+    }catch(SQLException ignored){}
+    return fileSet;
   }
 
   List<File> updateFileSet(int clientId, int fsCount, List<File> fileSet){
@@ -173,16 +181,18 @@ class DbDialog {
     }else return -1;
   }
 
-  int getFSId(int clientId) throws SQLException {
-    PreparedStatement pstmt=pstmts.get("getFSCount");
-    pstmt.setInt(1,clientId);
-    int fsCount=-1;
-    if(pstmt.execute()) {
-      ResultSet rs=pstmt.getResultSet();
-      if(rs.next())
-        fsCount=rs.getInt("max(fsCount)");
-    }
-    return fsCount;
+  int getFileSetId(int clientId) {
+    PreparedStatement pstmt=pstmts.get("getFileSetId");
+    int fsId=-1;
+    try {
+      pstmt.setInt(1, clientId);
+      if (pstmt.execute()) {
+        ResultSet rs = pstmt.getResultSet();
+        if (rs.next())
+          fsId = rs.getInt("max(id)");
+      }
+    }catch(SQLException ignored){}
+    return fsId;
   }
 
   int lastEvent(int clientId) throws SQLException {
