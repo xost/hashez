@@ -20,7 +20,7 @@ class Client {
   private boolean fsChanged=false;
   private boolean checked=false;
 
-  Client(String client,DbDialog dbd) throws ClientNotFoundException {
+  Client(String client,DbDialog dbd) {
     clientName=client;
     clientId=dbd.getClientId(clientName);
     descr=dbd.getDescription(clientId);
@@ -45,7 +45,7 @@ class Client {
   }
 
   void setFileSet(List<File> fileSet){
-    fsChanged=false;
+    fsChanged=false;  //Проверить отличается ли набор файлов
     this.fileSet.forEach(left->{
       boolean eq=false;
       for(File right:fileSet){
@@ -56,49 +56,35 @@ class Client {
       }
       fsChanged=eq;
     });
-    if(fsChanged)
+    if(fsChanged) //Если отличается, то присвоить новый и очистить diffFiles
       this.fileSet=fileSet;
+      this.diffFiles.clear();
   }
 
   List<File> getDiffFiles(){
     return diffFiles;
   }
 
-  private boolean compareWithStored(DbDialog dbd) throws SQLException, NoSuchAlgorithmException {
-    List<File> stored=dbd.getFileSet(clientId);
-    boolean isEquals=false;
-    if(stored.size()==fileSet.size()){
-      for(File left:fileSet){
-        boolean f=false;
-        for(File right:stored){
-          if(left.theSame(right)){
-            f=true;
-            break;
-          }
-        }
-        isEquals=f;
-      }
-    }else{
-      isEquals=false;
-    }
-    return isEquals;
-  }
-
-  void newFileSet(DbDialog dbd) throws SQLException {
-    //неправильно
+  void saveFileSet(DbDialog dbd) {
     if(fsChanged){
-      lastEvent=dbd.newEvent(clientId,eventType.NEWFILESET);
-      dbd.newFileSet(clientId,++fsId,fileSet);
+      try {
+        lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, null);
+        fileSetId = dbd.newFileSet(clientId, fileSet);
+      }catch(FileSetException | EventException ignored){}
     }
   }
 
-  void updateFileSet(DbDialog dbd) throws SQLException {
+  void updateFileSet(DbDialog dbd) {
   }
 
-  void saveDiff(DbDialog dbd) throws SQLException {
-    lastEvent=dbd.newEvent(clientId,eventType.CHECK);
-    if(checked){
-      dbd.saveDiff(lastEvent,diffFiles);
+  void saveDiff(DbDialog dbd) {
+    if(checked) {
+      try {
+        lastEvent = dbd.newEvent(clientId, eventType.CHECK,null);
+        dbd.saveDiff(lastEvent, diffFiles);
+        //diffFiles.clear();
+      } catch (EventException | SQLException ignored) {
+      }
     }
   }
 
