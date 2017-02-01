@@ -138,7 +138,7 @@ class DbDialog {
     PreparedStatement pstmt = pstmts.get("createCli");
     pstmt.setString(1, clientName);
     pstmt.setString(2, descr);
-    pstmt.setObject(3, (Object) atNow());
+    pstmt.setObject(3, atNow());
     pstmt.execute();
     return getClientId(clientName);
   }
