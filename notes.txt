@@ -1,11 +1,15 @@
-переделать принцип.
-- если из FileSet удаляется или добавляется файл, то не заботить нового клиента, а обновлять текущего.
-- результат проверки записывать не в File а в CheckedFiles.
-- File обновляется при действии "Сохранить".
-
 Работа из командной строки:
+Соединение:
+  - -dbType DBTYPE -dbName DBNAME -host HOST -port PORT -user -USER -password PASSWORD
+  - -connString jdbc:mysql://jaba.gib.loc:3306/gibloc -user USER -password PASSWORD
+
 1. Новый клиент (newCli)
-  - с передачей списка файлов файлом -in filename (сразу посчитать контрольные суммы и сохранить)
-  - без передачи списка файлов (fileSet будет пустым)
-  - данные задаются конф файлом (-cfg filename) filename(clientName=XXXXXX  description=YYYYYY)
-  - данные задаются в строке (-cliName XXXXXX -descr YYYYYY)
+  - -cfg -in FILENAME
+  - -nocfg
+
+2. Новый файлсет (newFS)
+  -
+3. Проверка (check)
+  - с конфигом (-cfg filename [-save])
+  - из командной строки (-cliName XXXXXX [-save])
+  - -out / -noout
