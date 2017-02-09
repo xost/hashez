@@ -23,7 +23,7 @@ class DbDialog {
       throws ClassNotFoundException, SQLException {
     Class.forName("com.mysql.jdbc.Driver");
     Connection dbConn = DriverManager.getConnection("jdbc:mysql://jaba.gib.loc:3306/gibloc", "admin", "gibloc");
-    pstmts = new HashMap<>();
+    pstmts = new Hashtable<>();
     pstmts.put("getClientId", dbConn.prepareStatement(
         "select max(id) from hashez_client where client=?"));
     pstmts.put("getFileSet", dbConn.prepareStatement(

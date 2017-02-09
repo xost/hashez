@@ -1,21 +1,16 @@
 package org.host43.gibloc;
 
-import org.apache.commons.cli.CommandLine;
+import java.util.Properties;
 
 /**
  * Created by stas on 03.02.2017.
  */
-public class NewCli implements Command {
+public class NewCli implements UAction {
   private String cliName=null;
   private String descr=null;
 
-  NewCli(CommandLine cl) throws CommandLineException {
-    String cfgFile=cl.getOptionValue("cfg","hashezConfig.xml");
-    cliName=cl.getOptionValue("c");
-    descr=cl.getOptionValue("d");
-    if(cliName==null || descr==null)
-      throw new CommandLineException("Command 'newCli' must contains '-c client name'" +
-          "and '-d description' arguments");
+  NewCli(Properties props){
+
   }
   @Override
   public void perform() {
