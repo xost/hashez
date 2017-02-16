@@ -29,11 +29,15 @@ class Client {
     lastEvent = dbd.lastEvent(clientId);
   }
 
-  static Client createClient(String cliName,String desr,List<File> fileSet,DbDialog dbd) throws SQLException {
+  static Client createClient(String cliName,String desr,List<File> fileSet,DbDialog dbd){
     dbd.newCli(cliName,desr);
     int clientId=dbd.getClientId(cliName);
-    int fileSetId=dbd.newFileSet(clientId,fileSet);
-    return new Client(cliName,dbd);
+    int fileSetId=-1;
+    if(clientId!=-1)
+      fileSetId=dbd.newFileSet(clientId,fileSet);
+    if(fileSetId!=-1)
+      return new Client(cliName,dbd);
+    return null;
   }
 
   void recalculate() {

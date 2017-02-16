@@ -60,7 +60,7 @@ public class NewCli implements UAction {
       }
       Client cli=Client.createClient(cliName,description,fileSet,dbd);
       printFileSet(cli.getFileSet());
-    } catch (SQLException|IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       throw new ActionException(e);
     }

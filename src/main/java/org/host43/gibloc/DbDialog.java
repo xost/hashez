@@ -12,13 +12,14 @@ class DbDialog {
   private static DbDialog instance;
   Map<String, PreparedStatement> pstmts;
 
-  static synchronized DbDialog getInstance(String connection,String username, String password)
-      throws SQLException{
+  static synchronized DbDialog getInstance(String connection,
+                                           String username,
+                                           String password){
     if (instance == null)
       try {
         instance = new DbDialog(connection, username, password);
-      }catch(ClassNotFoundException e){
-        throw new SQLException(e);
+      }catch(ClassNotFoundException | SQLException e){
+        return null;
       }
     return instance;
   }
@@ -126,31 +127,46 @@ class DbDialog {
     return failFiles;
   }
 
-  void saveDiff(int eventId, List<File> fileSet) throws SQLException {
+  void saveDiff(int eventId, List<File> fileSet) {
     //insert into hashez_diff(event_id,path,state) values (?,?,?)
     PreparedStatement pstmt = pstmts.get("saveDiff");
-    pstmt.setInt(1,eventId);
-    for (File file : fileSet) {
-      pstmt.setString(2, file.getFileName());
-      pstmt.setString(3, file.getState().toString());
-      pstmt.execute();
+    try {
+      pstmt.setInt(1, eventId);
+      for (File file : fileSet) {
+        pstmt.setString(2, file.getFileName());
+        pstmt.setString(3, file.getState().toString());
+        pstmt.execute();
+      }
+    }catch(SQLException e){
+      throw new RuntimeException(e);
     }
   }
 
-  int newCli(String clientName, String descr) throws SQLException {
+  int newCli(String clientName, String descr){
     PreparedStatement pstmt = pstmts.get("createCli");
-    pstmt.setString(1, clientName);
-    pstmt.setString(2, descr);
-    pstmt.setObject(3, atNow());
-    pstmt.execute();
-    return getClientId(clientName);
+    int clientId=-1;
+    try {
+      pstmt.setString(1, clientName);
+      pstmt.setString(2, descr);
+      pstmt.setObject(3, atNow());
+      pstmt.execute();
+      clientId=getClientId(clientName);
+      newEvent(clientId,eventType.NEWCLIENT,"clientName \""+clientName+"\" created");
+    }catch(SQLException e){
+      throw new RuntimeException(e);
+    }
+    return clientId;
   }
 
-  int newFileSet(int clientId, List<File> fileSet) throws SQLException {
+  int newFileSet(int clientId, List<File> fileSet){
     int fileSetId=-1;
-    fileSetId = newFileSet(clientId);
-    fillFileSet(fileSetId, fileSet);
-    newEvent(clientId,eventType.NEWFILESET,"New FileSet saved");
+    try {
+      fileSetId = newFileSet(clientId);
+      fillFileSet(fileSetId, fileSet);
+      newEvent(clientId, eventType.NEWFILESET, "New FileSet saved");
+    }catch(SQLException e){
+      throw new RuntimeException(e);
+    }
     return fileSetId;
   }
 
@@ -166,18 +182,16 @@ class DbDialog {
 
   int getClientId(String client) {
     PreparedStatement pstmt = pstmts.get("getClientId");
+    int id=-1;
     try {
       pstmt.setString(1, client);
       if (pstmt.execute()) {
         ResultSet rs = pstmt.getResultSet();
-        int id = -1;
         if (rs.next())
           id = rs.getInt("max(id)");
-        return id;
       }
-    } catch (SQLException ignored) {
-    }
-    return -1;
+    }catch(SQLException ignored){}
+    return id;
   }
 
   int getFileSetId(int clientId) {

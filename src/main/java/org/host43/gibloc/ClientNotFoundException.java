@@ -7,4 +7,7 @@ public class ClientNotFoundException extends Exception {
   ClientNotFoundException(String reason){
     super(reason);
   }
+  ClientNotFoundException(Exception e){
+    super(e);
+  }
 }

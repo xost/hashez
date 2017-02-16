@@ -43,6 +43,8 @@ class Checksum {
   String toHexString() {
     char[] hexSigns = "0123456789ABCDEF".toCharArray();
     byte[] digest = getDigest();
+    if(digest==null)
+      return "null";
     StringBuilder hexString = new StringBuilder();
     char high;
     char low;
