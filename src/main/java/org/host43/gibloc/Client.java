@@ -29,6 +29,13 @@ class Client {
     lastEvent = dbd.lastEvent(clientId);
   }
 
+  static Client createClient(String cliName,String desr,List<File> fileSet,DbDialog dbd) throws SQLException {
+    dbd.newCli(cliName,desr);
+    int clientId=dbd.getClientId(cliName);
+    int fileSetId=dbd.newFileSet(clientId,fileSet);
+    return new Client(cliName,dbd);
+  }
+
   void recalculate() {
     List<File> diffFiles=new ArrayList<>();
     fileSet.forEach(file->{
@@ -70,7 +77,7 @@ class Client {
       try {
         lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, null);
         fileSetId = dbd.newFileSet(clientId, fileSet);
-      }catch(FileSetException | EventException ignored){}
+      }catch(SQLException ignored){}
     }
   }
 
@@ -83,7 +90,7 @@ class Client {
         lastEvent = dbd.newEvent(clientId, eventType.CHECK,null);
         dbd.saveDiff(lastEvent, diffFiles);
         //diffFiles.clear();
-      } catch (EventException | SQLException ignored) {
+      } catch (SQLException ignored) {
       }
     }
   }

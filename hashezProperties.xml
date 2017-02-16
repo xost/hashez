@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Hashez config file</comment>
+<entry key="cliName">xoxland</entry>
+<entry key="connection">jdbc:mysql://jaba.gib.loc:3306/gibloc</entry>
+<entry key="password">gibloc</entry>
+<entry key="description">xoxland gib loc</entry>
+<entry key="username">admin</entry>
+</properties>

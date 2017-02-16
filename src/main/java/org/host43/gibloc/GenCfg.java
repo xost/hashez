@@ -11,7 +11,6 @@ import java.util.Properties;
  * Created by stas on 09.02.2017.
  */
 public class GenCfg implements UAction {
-  private OutputStream fis;
   private String connection;
   private String username;
   private String password;
@@ -21,7 +20,7 @@ public class GenCfg implements UAction {
 
   private Logger log= LogManager.getLogger(this.getClass());
 
-  GenCfg(CommandLine cl) throws CommandLineException {
+  GenCfg(CommandLine cl) throws BadParametersException {
 
     connection=cl.getOptionValue("conn");
     username=cl.getOptionValue("u");
@@ -32,7 +31,7 @@ public class GenCfg implements UAction {
     if(connection==null || username==null ||
         password==null || cliName==null ||
         description==null || filename==null)
-      throw new CommandLineException("Expected options are missing");
+      throw new BadParametersException("Expected options are missing.");
   }
   @Override
   public void perform() {
@@ -43,8 +42,8 @@ public class GenCfg implements UAction {
       props.setProperty("password",password);
       props.setProperty("cliName",cliName);
       props.setProperty("description",description);
-      props.storeToXML(fis,"Hashez config file");
-      fis=new FileOutputStream(filename);
+      OutputStream fos = new FileOutputStream(filename);
+      props.storeToXML(fos,"Hashez config file");
     } catch (NullPointerException | IOException e) {
       log.error(e);
       throw new RuntimeException(e);

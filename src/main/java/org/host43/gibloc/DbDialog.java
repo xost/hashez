@@ -12,15 +12,18 @@ class DbDialog {
   private static DbDialog instance;
   Map<String, PreparedStatement> pstmts;
 
-  static synchronized DbDialog getInstance()
-      throws SQLException, ClassNotFoundException {
+  static synchronized DbDialog getInstance(String connection,String username, String password)
+      throws SQLException{
     if (instance == null)
-      instance = new DbDialog();
+      try {
+        instance = new DbDialog(connection, username, password);
+      }catch(ClassNotFoundException e){
+        throw new SQLException(e);
+      }
     return instance;
   }
 
-  private DbDialog()
-      throws ClassNotFoundException, SQLException {
+  private DbDialog(String connection,String username, String password) throws SQLException, ClassNotFoundException {
     Class.forName("com.mysql.jdbc.Driver");
     Connection dbConn = DriverManager.getConnection("jdbc:mysql://jaba.gib.loc:3306/gibloc", "admin", "gibloc");
     pstmts = new Hashtable<>();
@@ -143,35 +146,21 @@ class DbDialog {
     return getClientId(clientName);
   }
 
-  int newFileSet(int clientId, List<File> fileSet) throws FileSetException{
+  int newFileSet(int clientId, List<File> fileSet) throws SQLException {
     int fileSetId=-1;
-    try {
-      fileSetId = newFileSet(clientId);
-    }catch(FileSetException e){
-      throw new FileSetException(e.toString());
-    }
-    if(fileSetId!=-1)
-      try {
-        fillFileSet(fileSetId, fileSet);
-      }catch(SQLException e) {
-        throw new FileSetException(e.toString());
-      }
-    else
-      throw new FileSetException("Unknown error.");
+    fileSetId = newFileSet(clientId);
+    fillFileSet(fileSetId, fileSet);
+    newEvent(clientId,eventType.NEWFILESET,"New FileSet saved");
     return fileSetId;
   }
 
-  int newEvent(int clientId, eventType type,String comment) throws EventException {
+  int newEvent(int clientId, eventType type,String comment) throws SQLException {
     PreparedStatement pstmt = pstmts.get("newEvent");
-    try {
-      pstmt.setInt(1, clientId);
-      pstmt.setString(2, type.toString());
-      pstmt.setString(3,comment);
-      pstmt.setObject(4, (Object) atNow());
-      pstmt.execute();
-    } catch (SQLException e) {
-      throw new EventException(e.toString());
-    }
+    pstmt.setInt(1, clientId);
+    pstmt.setString(2, type.toString());
+    pstmt.setString(3,comment);
+    pstmt.setObject(4, (Object) atNow());
+    pstmt.execute();
     return lastEvent(clientId);
   }
 
@@ -227,17 +216,13 @@ class DbDialog {
     return new Timestamp(now.getTimeInMillis());
   }
 
-  private int newFileSet(int clientId) throws FileSetException{
+  private int newFileSet(int clientId) throws SQLException {
     PreparedStatement pstmt = pstmts.get("newFileSet");
     int fileSetId=-1;
-    try {
-      pstmt.setObject(1, (Object) atNow());
-      pstmt.setInt(2, clientId);
-      pstmt.execute();
-      fileSetId=getFileSetId(clientId);
-    }catch(SQLException e){
-      throw new FileSetException(e.toString());
-    }
+    pstmt.setObject(1, (Object) atNow());
+    pstmt.setInt(2, clientId);
+    pstmt.execute();
+    fileSetId=getFileSetId(clientId);
     return fileSetId;
   }
 
