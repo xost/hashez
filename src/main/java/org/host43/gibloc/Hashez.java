@@ -15,27 +15,19 @@ public class Hashez {
     if(args.length<1){
       System.out.println("Error options");
     }else{
-      try {
-        mode=getAction(args);
-      } catch (BadParametersException e) {
-        log.error(e);
-        System.exit(-1);
-      }
+      mode=getAction(args);
     }
     assert mode != null;
-    try {
-      mode.perform();
-    } catch (ActionException e) {
-      e.printStackTrace();
-    }
+    mode.perform();
   }
 
-  private static UAction getAction(String[] args) throws BadParametersException {
+  private static UAction getAction(String[] args){
     Options opts = new Options();
     opts.addOption("cfg", "config", true, "xml config file");
     opts.addOption("c", "client", true, "client name");
     opts.addOption("d", "description", true, "description");
     opts.addOption("conn", "connection", true, "connection string");
+    opts.addOption("dr","driver",true,"database driver name");
     opts.addOption("u", "username", true, "database username");
     opts.addOption("p", "password", true, "database user's password");
     opts.addOption("i", "in", true, "file which contains list of files for fileSet");
@@ -45,23 +37,24 @@ public class Hashez {
     try {
       CommandLineParser prsr = new GnuParser();
       cl = prsr.parse(opts,args);
-    } catch (ParseException e) {
-      throw new BadParametersException(e);
-    }
 
-    switch (args[0]) {
-      case "newCli":
-        return new NewCli(cl);
-      //case "newFS":
-      //  return new NewFS(cl);
-      //case "check":
-      //  return new Check(cl);
-      case "genCfg":
-        return new GenCfg(cl);
-      //case "gui":
-      //  return new Gui(cl);
-      default:
-        throw new BadParametersException("Unknown command");
+      switch (args[0]) {
+        case "newCli":
+          return new NewCli(cl);
+        //case "newFS":
+        //  return new NewFS(cl);
+        //case "check":
+        //  return new Check(cl);
+        case "genCfg":
+          return new GenCfg(cl);
+        //case "gui":
+        //  return new Gui(cl);
+        default:
+          throw new BadParametersException("Unknown command");
+      }
+    } catch (ParseException|BadParametersException e) {
+      printCLHelp(opts);
+      throw new RuntimeException(e);
     }
   }
 

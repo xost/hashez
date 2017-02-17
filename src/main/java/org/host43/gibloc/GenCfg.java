@@ -12,6 +12,7 @@ import java.util.Properties;
  */
 public class GenCfg implements UAction {
   private String connection;
+  private String driver;
   private String username;
   private String password;
   private String cliName;
@@ -27,6 +28,7 @@ public class GenCfg implements UAction {
     password=cl.getOptionValue("p");
     cliName=cl.getOptionValue("c");
     description=cl.getOptionValue("d");
+    driver=cl.getOptionValue("dr");
     filename=cl.getOptionValue("cfg");
     if(connection==null || username==null ||
         password==null || cliName==null ||
@@ -36,15 +38,16 @@ public class GenCfg implements UAction {
   @Override
   public void perform() {
     Properties props=new Properties();
-    try{
-      props.setProperty("connection",connection);
-      props.setProperty("username",username);
-      props.setProperty("password",password);
-      props.setProperty("cliName",cliName);
-      props.setProperty("description",description);
+    try {
+      props.setProperty("connection", connection);
+      props.setProperty("jdbcDriver", driver);
+      props.setProperty("username", username);
+      props.setProperty("password", password);
+      props.setProperty("cliName", cliName);
+      props.setProperty("description", description);
       OutputStream fos = new FileOutputStream(filename);
       props.storeToXML(fos,"Hashez config file");
-    } catch (NullPointerException | IOException e) {
+    } catch (IOException e) {
       log.error(e);
       throw new RuntimeException(e);
     }

@@ -3,8 +3,9 @@
 <properties>
 <comment>Hashez config file</comment>
 <entry key="cliName">xoxland</entry>
+<entry key="jdbcDriver">com.mysql.jdbc.Driver</entry>
 <entry key="connection">jdbc:mysql://jaba.gib.loc:3306/gibloc</entry>
 <entry key="password">gibloc</entry>
-<entry key="description">xoxland gib loc</entry>
+<entry key="description">xoxland.gib.loc</entry>
 <entry key="username">admin</entry>
 </properties>

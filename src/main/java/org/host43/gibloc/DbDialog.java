@@ -10,23 +10,28 @@ import java.util.*;
  */
 class DbDialog {
   private static DbDialog instance;
-  Map<String, PreparedStatement> pstmts;
+  private Map<String, PreparedStatement> pstmts;
 
   static synchronized DbDialog getInstance(String connection,
+                                           String jdbcDriver,
                                            String username,
                                            String password){
     if (instance == null)
       try {
-        instance = new DbDialog(connection, username, password);
+        instance = new DbDialog(connection,jdbcDriver,username,password);
       }catch(ClassNotFoundException | SQLException e){
-        return null;
+        throw new RuntimeException(e);
       }
     return instance;
   }
 
-  private DbDialog(String connection,String username, String password) throws SQLException, ClassNotFoundException {
-    Class.forName("com.mysql.jdbc.Driver");
-    Connection dbConn = DriverManager.getConnection("jdbc:mysql://jaba.gib.loc:3306/gibloc", "admin", "gibloc");
+  private DbDialog(String connection,
+                   String jdbcDriver,
+                   String username,
+                   String password)
+      throws SQLException, ClassNotFoundException {
+    Class.forName(jdbcDriver);
+    Connection dbConn = DriverManager.getConnection(connection,username, password);
     pstmts = new Hashtable<>();
     pstmts.put("getClientId", dbConn.prepareStatement(
         "select max(id) from hashez_client where client=?"));
