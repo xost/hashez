@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class NewCli implements UAction {
 
   private String fileSetFilename;
-  Config cfg;
+  private Config cfg;
 
   private Logger log= LogManager.getLogger(this.getClass());
 
@@ -33,6 +33,7 @@ public class NewCli implements UAction {
 
     cfg=Config.getInstance(cl);
   }
+
   @Override
   public void perform(){
     DbDialog dbd;
