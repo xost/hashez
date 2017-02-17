@@ -1,6 +1,5 @@
 package org.host43.gibloc;
 
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;

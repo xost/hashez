@@ -33,7 +33,7 @@ public class Hashez {
     opts.addOption("i", "in", true, "file which contains list of files for fileSet");
     opts.addOption("s", "save", false, "save results");
 
-    CommandLine cl = null;
+    CommandLine cl;
     try {
       CommandLineParser prsr = new GnuParser();
       cl = prsr.parse(opts,args);

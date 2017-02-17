@@ -1,7 +1,6 @@
 package org.host43.gibloc;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +12,7 @@ import java.util.Arrays;
  * Created by xost on 12/14/16.
  */
 class Checksum {
-  byte[] digest;
+  private byte[] digest;
 
   Checksum(String filename) throws NoSuchAlgorithmException, IOException {
     Path file = Paths.get(filename);

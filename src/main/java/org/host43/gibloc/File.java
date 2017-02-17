@@ -30,7 +30,7 @@ class File {
     }
   }
 
-  public String getFileName(){
+  String getFileName(){
     return filename;
   }
 
@@ -76,12 +76,9 @@ class File {
   @Override
   public boolean equals(Object right){
     File objFile=(File)right;
-    if(checksum.equals(objFile.getChecksum()) &&
+    return checksum.equals(objFile.getChecksum()) &&
         filename.equals(objFile.getFileName()) &&
-        state.equals(objFile.getState())){
-      return true;
-    }
-    return false;
+        state.equals(objFile.getState());
   }
 
   boolean theSame(File right){

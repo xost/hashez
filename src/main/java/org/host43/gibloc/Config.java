@@ -17,7 +17,7 @@ class Config {
 
   static Config getInstance(CommandLine cl) throws BadParametersException {
     if(instance==null)
-      return new Config(cl);
+      instance=new Config(cl);
     return instance;
   }
 
