@@ -1,7 +1,12 @@
 package org.host43.gibloc;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 /**
  * Created by stas on 16.12.2016.
@@ -28,6 +33,18 @@ class File {
     } catch (IOException e) {
       state=State.FILESYSTEMERROR;
     }
+  }
+
+  static List<File> generateFileSet(InputStream in){
+    List<File> fileSet=new ArrayList<>();
+    Scanner reader=new Scanner(new BufferedInputStream(in));
+    String line;
+    while(reader.hasNextLine()){
+      line=reader.nextLine().trim();
+      if(!line.isEmpty())
+        fileSet.add(new File(line));
+    }
+    return fileSet;
   }
 
   String getFileName(){
