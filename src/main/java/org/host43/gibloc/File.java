@@ -4,8 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Scanner;
 
 /**
@@ -35,15 +35,19 @@ class File {
     }
   }
 
-  static List<File> generateFileSet(InputStream in){
-    List<File> fileSet=new ArrayList<>();
+  static Set<File> generateFileSet(InputStream in){
+    Set<File> fileSet=new HashSet<>();
+    Set<String> filenames=new HashSet<>();
     Scanner reader=new Scanner(new BufferedInputStream(in));
     String line;
     while(reader.hasNextLine()){
       line=reader.nextLine().trim();
       if(!line.isEmpty())
-        fileSet.add(new File(line));
+        filenames.add(line);
     }
+    filenames.forEach(fn->{
+      fileSet.add(new File(fn));
+    });
     return fileSet;
   }
 
@@ -90,13 +94,13 @@ class File {
     return this;
   }
 
-  @Override
-  public boolean equals(Object right){
-    File objFile=(File)right;
-    return checksum.equals(objFile.getChecksum()) &&
-        filename.equals(objFile.getFileName()) &&
-        state.equals(objFile.getState());
-  }
+  //@Override
+  //public boolean equals(Object right){
+  //  File objFile=(File)right;
+  //  return checksum.equals(objFile.getChecksum()) &&
+  //      filename.equals(objFile.getFileName()) &&
+  //      state.equals(objFile.getState());
+  //}
 
   boolean theSame(File right){
     return filename.equals(right.getFileName());

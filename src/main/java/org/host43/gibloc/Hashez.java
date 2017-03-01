@@ -43,8 +43,8 @@ public class Hashez {
           return new NewCli(cl);
         case "newFS":
           return new NewFS(cl);
-        //case "check":
-        //  return new Check(cl);
+        case "check":
+          return new Check(cl);
         case "genCfg":
           return new GenCfg(cl);
         //case "gui":

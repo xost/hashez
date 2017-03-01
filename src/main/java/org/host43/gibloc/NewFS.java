@@ -8,8 +8,8 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Scanner;
 
 /**
@@ -17,7 +17,7 @@ import java.util.Scanner;
  */
 class NewFS implements UAction {
 
-  private List<File> fileSet=new ArrayList<>();
+  private Set<File> fileSet=new HashSet<>();
   private DbDialog dbd;
   private Client cli;
 
@@ -38,7 +38,12 @@ class NewFS implements UAction {
         cfg.jdbcDriver(),
         cfg.username(),
         cfg.password());
-    cli=new Client(cfg.cliName(),dbd);
+    try {
+      cli=new Client(cfg.cliName(),dbd);
+    } catch (ClientNotFoundException e) {
+      log.error(e);
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

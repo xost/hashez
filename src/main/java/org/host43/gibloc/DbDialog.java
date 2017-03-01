@@ -29,7 +29,12 @@ class DbDialog {
                    String password)
       throws SQLException, ClassNotFoundException {
     Class.forName(jdbcDriver);
-    Connection dbConn = DriverManager.getConnection(connection,username, password);
+    Properties connProps=new Properties();
+    connProps.setProperty("user",username);
+    connProps.setProperty("password",password);
+    connProps.setProperty("useUnicode","true");
+    connProps.setProperty("characterEncoding","utf8");
+    Connection dbConn = DriverManager.getConnection(connection,connProps);
     pstmts = new Hashtable<>();
     pstmts.put("getClientId", dbConn.prepareStatement(
         "select max(id) from hashez_client where client=?"));
@@ -76,8 +81,8 @@ class DbDialog {
     return descr;
   }
 
-  List<File> getFileSet(int fileSetId) {
-    List<File> fileSet = new ArrayList<>();
+  Set<File> getFileSet(int fileSetId) {
+    Set<File> fileSet = new HashSet<>();
     PreparedStatement pstmt = pstmts.get("getFileSet");
     try {
       pstmt.setInt(1, fileSetId);
@@ -99,10 +104,10 @@ class DbDialog {
     return fileSet;
   }
 
-  List<File> updateFileSet(int fileSetId, List<File> fileSet) { //переписать
+  Set<File> updateFileSet(int fileSetId, Set<File> fileSet) { //переписать
     //Возвращаем список файлов которые не удалось обновить
     //checksum=?,state=?,happened=? where fileset_id=? and path=?
-    List<File> failFiles = new ArrayList<>();
+    Set<File> failFiles = new HashSet<>();
     PreparedStatement pstmt = pstmts.get("updateFileSet");
     try {
       pstmt.setInt(4, fileSetId);
@@ -130,7 +135,7 @@ class DbDialog {
     return failFiles;
   }
 
-  void saveDiff(int eventId, List<File> fileSet) {
+  void saveDiff(int eventId, Set<File> fileSet) {
     //insert into hashez_diff(event_id,path,state) values (?,?,?)
     PreparedStatement pstmt = pstmts.get("saveDiff");
     try {
@@ -145,7 +150,7 @@ class DbDialog {
     }
   }
 
-  int newCli(String clientName, String descr){
+  int newCli(String clientName, String descr) throws ClientNotFoundException {
     PreparedStatement pstmt = pstmts.get("createCli");
     int clientId=-1;
     try {
@@ -153,22 +158,23 @@ class DbDialog {
       pstmt.setString(2, descr);
       pstmt.setObject(3, atNow());
       pstmt.execute();
-      clientId=getClientId(clientName);
       newEvent(clientId,eventType.NEWCLIENT,"clientName \""+clientName+"\" created");
     }catch(SQLException e){
       throw new RuntimeException(e);
     }
+    clientId=getClientId(clientName);
     return clientId;
   }
 
-  int newFileSet(int clientId, List<File> fileSet){
+  int newFileSet(int clientId, Set<File> fileSet){
     int fileSetId=-1;
     try {
       fileSetId = newFileSet(clientId);
       fillFileSet(fileSetId, fileSet);
       newEvent(clientId, eventType.NEWFILESET, "New FileSet saved");
     }catch(SQLException e){
-      throw new RuntimeException(e);
+      e.printStackTrace();
+      new RuntimeException(e);
     }
     return fileSetId;
   }
@@ -187,18 +193,23 @@ class DbDialog {
     return lastEvent(clientId);
   }
 
-  int getClientId(String client) {
+  int getClientId(String client) throws ClientNotFoundException {
     PreparedStatement pstmt = pstmts.get("getClientId");
-    int id=-1;
+    Object id=-1;
     try {
       pstmt.setString(1, client);
       if (pstmt.execute()) {
         ResultSet rs = pstmt.getResultSet();
-        if (rs.next())
-          id = rs.getInt("max(id)");
+        if (rs.next()) {
+          id=rs.getObject("max(id)");
+          if(id==null)
+            throw new ClientNotFoundException("Client \""+client+"\" not found. Use command \"newCli\" for create new Client.");
+        }
       }
-    }catch(SQLException ignored){}
-    return id;
+    }catch(SQLException e){
+      throw new ClientNotFoundException(e);
+    }
+    return (int)id;
   }
 
   int getFileSetId(int clientId) {
@@ -251,7 +262,7 @@ class DbDialog {
     return fileSetId;
   }
 
-  private void fillFileSet(int fileSetId, List<File> fileSet) throws SQLException {
+  private void fillFileSet(int fileSetId, Set<File> fileSet) throws SQLException {
     //path,fileset_id,checksum,state,updated
     PreparedStatement pstmt = pstmts.get("fillFileSet");
     Checksum chs;

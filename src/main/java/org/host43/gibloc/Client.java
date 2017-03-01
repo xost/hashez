@@ -1,8 +1,8 @@
 package org.host43.gibloc;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by stas on 16.12.2016.
@@ -12,23 +12,25 @@ class Client {
   private int clientId=-1;
   private String clientName;
   private String descr;
-  private List<File> fileSet=new ArrayList<>();
-  private List<File> diffFiles=new ArrayList<>();
+  private Set<File> fileSet=new HashSet<>();
+  private Set<File> diffFiles=new HashSet<>();
   private int lastEvent=0;
   private int fileSetId=0;
   private boolean fsChanged=false;
   private boolean checked=false;
 
-  Client(String client,DbDialog dbd) {
+  Client(String client,DbDialog dbd) throws ClientNotFoundException {
     clientName=client;
     clientId=dbd.getClientId(clientName);
+    if(clientId==-1)
+      throw new ClientNotFoundException("Client \""+clientName+"\" not found.");
     descr=dbd.getDescription(clientId);
     fileSetId=dbd.getFileSetId(clientId);
     fileSet = dbd.getFileSet(fileSetId);
     lastEvent = dbd.lastEvent(clientId);
   }
 
-  static Client createClient(String cliName,String desr,List<File> fileSet,DbDialog dbd){
+  static Client createClient(String cliName,String desr,Set<File> fileSet,DbDialog dbd) throws ClientNotFoundException {
     int clientId=dbd.newCli(cliName,desr);
     int fileSetId=-1;
     if(clientId!=-1)
@@ -39,7 +41,7 @@ class Client {
   }
 
   void recalculate() {
-    List<File> diffFiles=new ArrayList<>();
+    Set<File> diffFiles=new HashSet<>();
     fileSet.forEach(file->{
       File old=file.calculate();
       if(old!=null)
@@ -49,11 +51,11 @@ class Client {
     checked=true;
   }
 
-  List<File> getFileSet(){
+  Set<File> getFileSet(){
     return fileSet;
   }
 
-  void setFileSet(List<File> fileSet){
+  void setFileSet(Set<File> fileSet){
     fsChanged=false;  //Проверить отличается ли набор файлов
     if(fileSet.size()==this.fileSet.size()) {
       this.fileSet.forEach(left -> {
@@ -68,12 +70,13 @@ class Client {
       });
     }else
       fsChanged=true;
-    if(fsChanged) //Если отличается, то присвоить новый и очистить diffFiles
-      this.fileSet=fileSet;
+    if(fsChanged) { //Если отличается, то присвоить новый и очистить diffFiles
+      this.fileSet = fileSet;
       this.diffFiles.clear();
+    }
   }
 
-  List<File> getDiffFiles(){
+  Set<File> getDiffFiles(){
     return diffFiles;
   }
 

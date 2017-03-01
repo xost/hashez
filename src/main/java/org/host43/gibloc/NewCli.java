@@ -5,9 +5,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Scanner;
 
 /**
@@ -36,23 +37,25 @@ class NewCli implements UAction {
         cfg.username(),
         cfg.password());
 
-    List<File> fileSet=new ArrayList<>();
-    String line;
-    try(Scanner reader=new Scanner(new FileInputStream(fileSetFilename))) {
-      while (reader.hasNextLine()) {
-        line = reader.nextLine();
-        fileSet.add(new File(line));
-      }
-    }catch(IOException e){
+    Set<File> fileSet= null;
+    try {
+      fileSet = File.generateFileSet(new FileInputStream(fileSetFilename));
+    } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
 
-    Client cli=Client.createClient(cfg.cliName(),cfg.description(),fileSet,dbd);
+    Client cli= null;
+    try {
+      cli = Client.createClient(cfg.cliName(),cfg.description(),fileSet,dbd);
+    } catch (ClientNotFoundException e) {
+      log.error(e);
+      throw new RuntimeException(e);
+    }
     assert cli != null;
     printFileSet(cli.getFileSet());
   }
 
-  private void printFileSet(List<File> fileSet){
+  private void printFileSet(Set<File> fileSet){
     fileSet.forEach(file->{
       System.out.println(file.getFileName());
       System.out.println(":"+file.getChecksum().toString());
