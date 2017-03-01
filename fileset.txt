@@ -1,9 +1,1 @@
-README.md
-hashez.iml
-log4j2.xml
-pom.xml
-target
-fileset.txt
-hashezProperties.xml
-notes.txt
-src
+c:\Заявка.pdf

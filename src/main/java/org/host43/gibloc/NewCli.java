@@ -13,7 +13,7 @@ import java.util.Scanner;
 /**
  * Created by stas on 03.02.2017.
  */
-public class NewCli implements UAction {
+class NewCli implements UAction {
 
   private String fileSetFilename;
   private Config cfg;

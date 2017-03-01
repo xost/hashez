@@ -53,7 +53,7 @@ class DbDialog {
     // 1. создать запить в таблице hashez_fileset
     // 2. добавить файлы в таблицу hashez_file
     pstmts.put("newFileSet", dbConn.prepareStatement(
-        "insert into hashez_fileset(registred,client_id) values(?,?)")); //!!!
+        "insert into hashez_fileset(registred,client_id) values(?,?)"));
     pstmts.put("fillFileSet", dbConn.prepareStatement(
         "insert into hashez_file(path,fileset_id,checksum,state,updated) values(?,?,?,?,?)"));//!!!
     //
@@ -173,13 +173,17 @@ class DbDialog {
     return fileSetId;
   }
 
-  int newEvent(int clientId, eventType type,String comment) throws SQLException {
+  int newEvent(int clientId, eventType type,String comment){
     PreparedStatement pstmt = pstmts.get("newEvent");
-    pstmt.setInt(1, clientId);
-    pstmt.setString(2, type.toString());
-    pstmt.setString(3,comment);
-    pstmt.setObject(4, (Object) atNow());
-    pstmt.execute();
+    try {
+      pstmt.setInt(1, clientId);
+      pstmt.setString(2, type.toString());
+      pstmt.setString(3, comment);
+      pstmt.setObject(4, (Object) atNow());
+      pstmt.execute();
+    }catch(SQLException e){
+      throw new RuntimeException(e);
+    }
     return lastEvent(clientId);
   }
 
@@ -220,7 +224,7 @@ class DbDialog {
         ResultSet rs = pstmt.getResultSet();
         int id = -1;
         if (rs.next())
-          rs.getInt("max(id)");
+          id=rs.getInt("max(id)");
         return id;
       }
     } catch (SQLException ignored) {
@@ -233,12 +237,16 @@ class DbDialog {
     return new Timestamp(now.getTimeInMillis());
   }
 
-  private int newFileSet(int clientId) throws SQLException {
+  private int newFileSet(int clientId) {
     PreparedStatement pstmt = pstmts.get("newFileSet");
     int fileSetId=-1;
-    pstmt.setObject(1, (Object) atNow());
-    pstmt.setInt(2, clientId);
-    pstmt.execute();
+    try {
+      pstmt.setObject(1, (Object) atNow());
+      pstmt.setInt(2, clientId);
+      pstmt.execute();
+    }catch(SQLException e){
+      throw new RuntimeException(e);
+    }
     fileSetId=getFileSetId(clientId);
     return fileSetId;
   }

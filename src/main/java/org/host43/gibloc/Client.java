@@ -12,8 +12,8 @@ class Client {
   private int clientId=-1;
   private String clientName;
   private String descr;
-  private List<File> fileSet=null;
-  private List<File> diffFiles=null;
+  private List<File> fileSet=new ArrayList<>();
+  private List<File> diffFiles=new ArrayList<>();
   private int lastEvent=0;
   private int fileSetId=0;
   private boolean fsChanged=false;
@@ -23,14 +23,13 @@ class Client {
     clientName=client;
     clientId=dbd.getClientId(clientName);
     descr=dbd.getDescription(clientId);
-    fileSet = dbd.getFileSet(clientId);
     fileSetId=dbd.getFileSetId(clientId);
+    fileSet = dbd.getFileSet(fileSetId);
     lastEvent = dbd.lastEvent(clientId);
   }
 
   static Client createClient(String cliName,String desr,List<File> fileSet,DbDialog dbd){
-    dbd.newCli(cliName,desr);
-    int clientId=dbd.getClientId(cliName);
+    int clientId=dbd.newCli(cliName,desr);
     int fileSetId=-1;
     if(clientId!=-1)
       fileSetId=dbd.newFileSet(clientId,fileSet);
@@ -56,16 +55,19 @@ class Client {
 
   void setFileSet(List<File> fileSet){
     fsChanged=false;  //Проверить отличается ли набор файлов
-    this.fileSet.forEach(left->{
-      boolean eq=false;
-      for(File right:fileSet){
-        if(left.theSame(right)){
-          eq=true;
-          break;
+    if(fileSet.size()==this.fileSet.size()) {
+      this.fileSet.forEach(left -> {
+        boolean eq = false;
+        for (File right : fileSet) {
+          if (left.theSame(right)) {
+            eq = true;
+            break;
+          }
         }
-      }
-      fsChanged=eq;
-    });
+        fsChanged = !eq;
+      });
+    }else
+      fsChanged=true;
     if(fsChanged) //Если отличается, то присвоить новый и очистить diffFiles
       this.fileSet=fileSet;
       this.diffFiles.clear();
@@ -77,10 +79,8 @@ class Client {
 
   void saveFileSet(DbDialog dbd) {
     if(fsChanged){
-      try {
-        lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, null);
-        fileSetId = dbd.newFileSet(clientId, fileSet);
-      }catch(SQLException ignored){}
+      lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, "New FileSet saved");
+      fileSetId = dbd.newFileSet(clientId, fileSet);
     }
   }
 
@@ -89,12 +89,9 @@ class Client {
 
   void saveDiff(DbDialog dbd) {
     if(checked) {
-      try {
-        lastEvent = dbd.newEvent(clientId, eventType.CHECK,null);
-        dbd.saveDiff(lastEvent, diffFiles);
-        //diffFiles.clear();
-      } catch (SQLException ignored) {
-      }
+      lastEvent = dbd.newEvent(clientId, eventType.CHECK,null);
+      dbd.saveDiff(lastEvent, diffFiles);
+      diffFiles.clear();
     }
   }
 

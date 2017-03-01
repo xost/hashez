@@ -41,8 +41,8 @@ public class Hashez {
       switch (args[0]) {
         case "newCli":
           return new NewCli(cl);
-        //case "newFS":
-        //  return new NewFS(cl);
+        case "newFS":
+          return new NewFS(cl);
         //case "check":
         //  return new Check(cl);
         case "genCfg":

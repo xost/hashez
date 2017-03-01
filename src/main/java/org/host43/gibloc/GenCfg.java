@@ -10,7 +10,7 @@ import java.util.Properties;
 /**
  * Created by stas on 09.02.2017.
  */
-public class GenCfg implements UAction {
+class GenCfg implements UAction {
   private String connection;
   private String driver;
   private String username;
