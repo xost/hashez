@@ -88,13 +88,16 @@ class Client {
   }
 
   void updateFileSet(DbDialog dbd) {
+    lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet was updated");
+    dbd.updateFileSet(fileSetId,fileSet);
   }
 
   void saveDiff(DbDialog dbd) {
     if(checked) {
-      lastEvent = dbd.newEvent(clientId, eventType.CHECK,null);
-      dbd.saveDiff(lastEvent, diffFiles);
+      lastEvent = dbd.newEvent(clientId, eventType.CHECK,"DiffFileSet saved");
+      dbd.saveDiff(lastEvent, fileSetId, diffFiles);
       diffFiles.clear();
+      checked=false;
     }
   }
 

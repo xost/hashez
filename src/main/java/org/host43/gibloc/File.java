@@ -1,8 +1,6 @@
 package org.host43.gibloc;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,6 +47,15 @@ class File {
       fileSet.add(new File(fn));
     });
     return fileSet;
+  }
+
+  static void outFileSet(Set<File> fileSet, OutputStream out){
+    PrintWriter prn=new PrintWriter(out);
+    fileSet.forEach(file->{
+      System.out.println(file.toString()+" : "+
+          file.getChecksum().toHexString()+" : "
+          +file.getState());
+    });
   }
 
   String getFileName(){

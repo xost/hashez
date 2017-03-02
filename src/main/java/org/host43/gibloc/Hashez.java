@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 public class Hashez {
   private static Logger log= LogManager.getLogger(Hashez.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws ClientNotFoundException {
     UAction mode=null;
     if(args.length<1){
       System.out.println("Error options");
@@ -21,7 +21,7 @@ public class Hashez {
     mode.perform();
   }
 
-  private static UAction getAction(String[] args){
+  private static UAction getAction(String[] args) throws ClientNotFoundException {
     Options opts = new Options();
     opts.addOption("cfg", "config", true, "xml config file");
     opts.addOption("c", "client", true, "client name");

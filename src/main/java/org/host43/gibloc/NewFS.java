@@ -23,15 +23,10 @@ class NewFS implements UAction {
 
   private Logger log= LogManager.getLogger(this.getClass());
 
-  NewFS(CommandLine cl) throws BadParametersException {
+  NewFS(CommandLine cl) throws BadParametersException, ClientNotFoundException {
     String fileSetFilename=cl.getOptionValue("i");
     if(fileSetFilename==null){
       throw new BadParametersException("Parameter --in was expected");
-    }
-    try {
-      fileSet=File.generateFileSet(new FileInputStream(fileSetFilename));
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
     }
     Config cfg=Config.getInstance(cl);
     dbd=DbDialog.getInstance(cfg.connection(),
@@ -39,8 +34,9 @@ class NewFS implements UAction {
         cfg.username(),
         cfg.password());
     try {
+      fileSet=File.generateFileSet(new FileInputStream(fileSetFilename));
       cli=new Client(cfg.cliName(),dbd);
-    } catch (ClientNotFoundException e) {
+    } catch (FileNotFoundException e) {
       log.error(e);
       throw new RuntimeException(e);
     }

@@ -49,7 +49,7 @@ class DbDialog {
     pstmts.put("descr", dbConn.prepareStatement(
         "select descr from hashez_client where id=?"));
     pstmts.put("updateFileSet", dbConn.prepareStatement(
-        "update hashez_file set checksum=?,state=?,happened=? where fileset_id=? and path=?")); //!!!
+        "update hashez_file set checksum=?,state=?,updated=? where fileset_id=? and path=?")); //!!!
     pstmts.put("saveDiff", dbConn.prepareStatement(
         "insert into hashez_diff(event_id,fileset_id,path,state) values (?,?,?,?)"));//!!!
     pstmts.put("createCli", dbConn.prepareStatement(
@@ -106,12 +106,12 @@ class DbDialog {
 
   Set<File> updateFileSet(int fileSetId, Set<File> fileSet) { //переписать
     //Возвращаем список файлов которые не удалось обновить
-    //checksum=?,state=?,happened=? where fileset_id=? and path=?
+    //update hashez_file set checksum=?,state=?,updated=? where fileset_id=? and path=?
     Set<File> failFiles = new HashSet<>();
     PreparedStatement pstmt = pstmts.get("updateFileSet");
     try {
-      pstmt.setInt(4, fileSetId);
       pstmt.setObject(3, (Object) atNow());
+      pstmt.setInt(4,fileSetId);
     } catch (SQLException e) {
       return fileSet;
     }
@@ -121,12 +121,12 @@ class DbDialog {
       state = file.getState();
       chs=file.getChecksum();
       try {
+        pstmt.setString(5,file.toString());
         if(chs!=null)
           pstmt.setBytes(1,chs.getDigest());
         else
           pstmt.setBytes(1,null);
         pstmt.setString(2, state.toString());
-        pstmt.setString(5, file.toString());
         pstmt.execute();
       } catch (SQLException e) {
         failFiles.add(file);
@@ -135,14 +135,15 @@ class DbDialog {
     return failFiles;
   }
 
-  void saveDiff(int eventId, Set<File> fileSet) {
-    //insert into hashez_diff(event_id,path,state) values (?,?,?)
+  void saveDiff(int eventId,int fileSetId, Set<File> fileSet) {
+    //insert into hashez_diff(event_id,fileSetId,path,state) values (?,?,?)
     PreparedStatement pstmt = pstmts.get("saveDiff");
     try {
       pstmt.setInt(1, eventId);
+      pstmt.setInt(2,fileSetId);
       for (File file : fileSet) {
-        pstmt.setString(2, file.getFileName());
-        pstmt.setString(3, file.getState().toString());
+        pstmt.setString(3, file.getFileName());
+        pstmt.setString(4, file.getState().toString());
         pstmt.execute();
       }
     }catch(SQLException e){
