@@ -27,7 +27,6 @@ public class Check implements UAction{
     //Пересчитать
     cli.recalculate();
     //Записать DiffFileSet
-    cli.saveDiff(dbd);
     //Обновить FileSet
     cli.updateFileSet(dbd);
     System.out.println("FileSet: ");

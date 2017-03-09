@@ -17,7 +17,6 @@ class Client {
   private int lastEvent=0;
   private int fileSetId=0;
   private boolean fsChanged=false;
-  private boolean checked=false;
 
   Client(String client,DbDialog dbd) throws ClientNotFoundException {
     clientName=client;
@@ -48,7 +47,6 @@ class Client {
         diffFiles.add(file);
     });
     this.diffFiles=diffFiles;
-    checked=true;
   }
 
   Set<File> getFileSet(){
@@ -88,16 +86,16 @@ class Client {
   }
 
   void updateFileSet(DbDialog dbd) {
-    lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet was updated");
-    dbd.updateFileSet(fileSetId,fileSet);
-  }
-
-  void saveDiff(DbDialog dbd) {
-    if(checked) {
+    if(!diffFiles.isEmpty()){
+      lastEvent = dbd.newEvent(clientId, eventType.CHECK,"FAIL");
+      lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet was updated");
+      dbd.updateFileSet(fileSetId,fileSet);
       lastEvent = dbd.newEvent(clientId, eventType.CHECK,"DiffFileSet saved");
       dbd.saveDiff(lastEvent, fileSetId, diffFiles);
       diffFiles.clear();
-      checked=false;
+    }else{
+      lastEvent=dbd.newEvent(clientId,eventType.CHECK,"PASS");
+      dbd.updateFileSet(fileSetId,fileSet);
     }
   }
 

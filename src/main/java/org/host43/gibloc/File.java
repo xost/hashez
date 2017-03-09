@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Scanner;
 
-/**
- * Created by stas on 16.12.2016.
- */
 class File {
   private String filename=null;
   private Checksum checksum=null;
@@ -76,7 +73,7 @@ class File {
   }
 
   File calculate() {
-    //Переписать !
+    //Переписать !!!
     State newSt=State.OK;
     Checksum newChs=new Checksum((byte[])null);
     try{
