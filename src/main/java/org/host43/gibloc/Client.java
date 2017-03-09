@@ -85,10 +85,19 @@ class Client {
     }
   }
 
+  Set<File> getFailedFiles(Set<File> fileSet){
+    Set<File> failedFiles=new HashSet<>();
+    fileSet.forEach(file->{
+      if(file.getState()!=State.OK || file.getState()!=State.UPDATED)
+        failedFiles.add(file);
+    });
+    return failedFiles;
+  }
+
   void updateFileSet(DbDialog dbd) {
     if(!diffFiles.isEmpty()){
       lastEvent = dbd.newEvent(clientId, eventType.CHECK,"FAIL");
-      lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet was updated");
+      lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet updated");
       dbd.updateFileSet(fileSetId,fileSet);
       lastEvent = dbd.newEvent(clientId, eventType.CHECK,"DiffFileSet saved");
       dbd.saveDiff(lastEvent, fileSetId, diffFiles);
@@ -97,17 +106,6 @@ class Client {
       lastEvent=dbd.newEvent(clientId,eventType.CHECK,"PASS");
       dbd.updateFileSet(fileSetId,fileSet);
     }
-  }
-
-  private boolean checkIsOK(){
-    boolean isOK=true;
-    State state;
-    for(File file:diffFiles){
-      state=file.getState();
-      if(state!=State.OK)
-        isOK=false;
-    }
-    return isOK;
   }
 
 }

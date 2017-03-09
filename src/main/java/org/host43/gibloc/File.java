@@ -98,6 +98,17 @@ class File {
     return this;
   }
 
+  File calculate2(){
+    try{
+      checksum=new Checksum(filename);
+    } catch (NoSuchAlgorithmException e) {
+      state=State.CRYPTOERROR;
+    } catch (IOException e) {
+      state=State.FILESYSTEMERROR;
+    }
+    return this;
+  }
+
   //@Override
   //public boolean equals(Object right){
   //  File objFile=(File)right;
