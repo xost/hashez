@@ -13,7 +13,7 @@ class Client {
   private String clientName;
   private String descr;
   private Set<File> fileSet=new HashSet<>();
-  private Set<File> diffFiles=new HashSet<>();
+  private Set<File> badFiles=new HashSet<>();
   private int lastEvent=0;
   private int fileSetId=0;
   private boolean fsChanged=false;
@@ -40,13 +40,13 @@ class Client {
   }
 
   void recalculate() {
-    Set<File> diffFiles=new HashSet<>();
+    Set<File> badFiles=new HashSet<>();
     fileSet.forEach(file->{
-      File old=file.calculate();
+      File old=file.calculate2();
       if(old!=null)
-        diffFiles.add(file);
+        badFiles.add(file);
     });
-    this.diffFiles=diffFiles;
+    this.badFiles=badFiles;
   }
 
   Set<File> getFileSet(){
@@ -68,14 +68,14 @@ class Client {
       });
     }else
       fsChanged=true;
-    if(fsChanged) { //Если отличается, то присвоить новый и очистить diffFiles
+    if(fsChanged) { //Если отличается, то присвоить новый и очистить badFiles
       this.fileSet = fileSet;
-      this.diffFiles.clear();
+      this.badFiles.clear();
     }
   }
 
-  Set<File> getDiffFiles(){
-    return diffFiles;
+  Set<File> getBadFiles(){
+    return badFiles;
   }
 
   void saveFileSet(DbDialog dbd) {
@@ -88,20 +88,20 @@ class Client {
   Set<File> getFailedFiles(Set<File> fileSet){
     Set<File> failedFiles=new HashSet<>();
     fileSet.forEach(file->{
-      if(file.getState()!=State.OK || file.getState()!=State.UPDATED)
+      if(file.getState()!=State.OK || file.getState()!=State.CHANGED)
         failedFiles.add(file);
     });
     return failedFiles;
   }
 
   void updateFileSet(DbDialog dbd) {
-    if(!diffFiles.isEmpty()){
+    if(!badFiles.isEmpty()){
       lastEvent = dbd.newEvent(clientId, eventType.CHECK,"FAIL");
       lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet updated");
       dbd.updateFileSet(fileSetId,fileSet);
-      lastEvent = dbd.newEvent(clientId, eventType.CHECK,"DiffFileSet saved");
-      dbd.saveDiff(lastEvent, fileSetId, diffFiles);
-      diffFiles.clear();
+      lastEvent = dbd.newEvent(clientId, eventType.CHECK,"BadFileSet saved");
+      dbd.saveBad(lastEvent, fileSetId, badFiles);
+      badFiles.clear();
     }else{
       lastEvent=dbd.newEvent(clientId,eventType.CHECK,"PASS");
       dbd.updateFileSet(fileSetId,fileSet);

@@ -23,10 +23,8 @@ class File {
     checksum=new Checksum((byte[]) null);
     try{
       checksum=new Checksum(filename);
-    } catch (NoSuchAlgorithmException e) {
-      state=State.CRYPTOERROR;
-    } catch (IOException e) {
-      state=State.FILESYSTEMERROR;
+    } catch (NoSuchAlgorithmException|IOException e) {
+      state=State.ERROR;
     }
   }
 
@@ -40,14 +38,11 @@ class File {
       if(!line.isEmpty())
         filenames.add(line);
     }
-    filenames.forEach(fn->{
-      fileSet.add(new File(fn));
-    });
+    filenames.forEach(fn->fileSet.add(new File(fn)));
     return fileSet;
   }
 
   static void outFileSet(Set<File> fileSet, OutputStream out){
-    PrintWriter prn=new PrintWriter(out);
     fileSet.forEach(file->{
       System.out.println(file.toString()+" : "+
           file.getChecksum().toHexString()+" : "
@@ -78,10 +73,8 @@ class File {
     Checksum newChs=new Checksum((byte[])null);
     try{
       newChs=new Checksum(filename);
-    }catch(IOException e){
-      newSt=State.FILESYSTEMERROR;
-    } catch (NoSuchAlgorithmException e) {
-      newSt=State.CRYPTOERROR;
+    }catch(NoSuchAlgorithmException|IOException e){
+      newSt=State.ERROR;
     }
     if(checksum.equals(newChs)){
       if(state==newSt)
@@ -91,7 +84,7 @@ class File {
     }else{
       checksum=newChs;
       if(newSt==State.OK)
-        state=State.UPDATED;
+        state=State.CHANGED;
       else
         state=newSt;
     }
@@ -99,12 +92,22 @@ class File {
   }
 
   File calculate2(){
+    Checksum savedChecksum=new Checksum(checksum.getDigest());
+    checksum=null;
     try{
       checksum=new Checksum(filename);
-    } catch (NoSuchAlgorithmException e) {
-      state=State.CRYPTOERROR;
-    } catch (IOException e) {
-      state=State.FILESYSTEMERROR;
+    } catch (NoSuchAlgorithmException|IOException e) {
+      state=State.ERROR;
+      return this;
+    }
+    if(checksum.equals(savedChecksum)){
+      if(state!=State.OK){
+        state=State.CHANGED;
+      }else{
+        return null;
+      }
+    }else{
+      state=State.CHANGED;
     }
     return this;
   }

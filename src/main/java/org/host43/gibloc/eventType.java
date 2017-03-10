@@ -4,7 +4,12 @@ enum eventType{
   CHECK,
   UPDATE,
   NEWCLIENT,
-  NEWFILESET
+  NEWFILESET,
   ;
 }
 
+enum Results{
+  PASS,
+  FAIL,
+  ;
+}
