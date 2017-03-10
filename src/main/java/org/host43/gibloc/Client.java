@@ -80,7 +80,6 @@ class Client {
 
   void saveFileSet(DbDialog dbd) {
     if(fsChanged){
-      lastEvent = dbd.newEvent(clientId, eventType.NEWFILESET, "New FileSet saved");
       fileSetId = dbd.newFileSet(clientId, fileSet);
     }
   }
@@ -96,14 +95,10 @@ class Client {
 
   void updateFileSet(DbDialog dbd) {
     if(!badFiles.isEmpty()){
-      lastEvent = dbd.newEvent(clientId, eventType.CHECK,"FAIL");
-      lastEvent = dbd.newEvent(clientId, eventType.UPDATE,"FileSet updated");
       dbd.updateFileSet(fileSetId,fileSet);
-      lastEvent = dbd.newEvent(clientId, eventType.CHECK,"BadFileSet saved");
       dbd.saveBad(lastEvent, fileSetId, badFiles);
       badFiles.clear();
     }else{
-      lastEvent=dbd.newEvent(clientId,eventType.CHECK,"PASS");
       dbd.updateFileSet(fileSetId,fileSet);
     }
   }

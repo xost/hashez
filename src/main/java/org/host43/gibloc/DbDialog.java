@@ -140,9 +140,13 @@ class DbDialog {
     PreparedStatement pstmt = pstmts.get("saveBad");
     try {
       pstmt.setInt(4,fileSetId);
+      byte[] digest;
+      Checksum chs;
       for (File file : fileSet) {
         pstmt.setString(1, file.getFileName());
-        pstmt.setBytes(2, file.getChecksum().getDigest());
+        chs=file.getChecksum();
+        digest=file.getChecksum().getDigest();
+        if(digest==null)pstmt.setNull(2,Types.ARRAY);else pstmt.setBytes(2,digest);
         pstmt.setString(3, file.getState().toString());
         pstmt.execute();
       }
@@ -188,9 +192,9 @@ class DbDialog {
       pstmt.setString(1, type.toString());
       pstmt.setString(2, result.toString());
       pstmt.setObject(3, atNow());
-      pstmt.setInt(4,clientId);
-      pstmt.setInt(5,fileSetId);
-      pstmt.setInt(6,badFilesId);
+      if(clientId==null)pstmt.setNull(4,Types.INTEGER);else pstmt.setInt(4,clientId);
+      if(fileSetId==null)pstmt.setNull(5,Types.INTEGER);else pstmt.setInt(5,fileSetId);
+      if(badFilesId==null)pstmt.setNull(6,Types.INTEGER);else pstmt.setInt(6,badFilesId);
       pstmt.execute();
     }catch(SQLException e){
       throw new RuntimeException(e);
@@ -256,7 +260,7 @@ class DbDialog {
     PreparedStatement pstmt = pstmts.get("newFileSet");
     int fileSetId=-1;
     try {
-      pstmt.setObject(1, (Object) atNow());
+      pstmt.setObject(1,atNow());
       pstmt.setInt(2, clientId);
       pstmt.execute();
     }catch(SQLException e){
