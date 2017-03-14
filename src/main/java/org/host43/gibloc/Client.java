@@ -42,7 +42,7 @@ class Client {
   void recalculate() {
     Set<File> badFiles=new HashSet<>();
     fileSet.forEach(file->{
-      File old=file.calculate2();
+      File old=file.calculate();
       if(old!=null)
         badFiles.add(file);
     });

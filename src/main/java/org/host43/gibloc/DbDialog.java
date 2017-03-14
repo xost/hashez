@@ -51,7 +51,7 @@ class DbDialog {
     pstmts.put("updateFileSet", dbConn.prepareStatement(
         "update hashez_file set checksum=?,state=?,updated=? where fileset_id=? and path=?"));
     pstmts.put("saveBad", dbConn.prepareStatement(
-        "insert into hashez_bad(path,checksum,state,fileset_id) values (?,?,?,?)"));
+        "insert into hashez_badfiles(path,checksum,state,fileset_id) values (?,?,?,?)"));
     pstmts.put("createCli", dbConn.prepareStatement(
         "insert into hashez_client(client,descr,registred) values(?,?,?)"));
     // два запроса.
@@ -136,7 +136,7 @@ class DbDialog {
   }
 
   void saveBad(int eventId,int fileSetId, Set<File> fileSet) {
-    //insert into hashez_bad(path,checksum,state,fileset_id) values (?,?,?,?)
+    //insert into hashez_badfiles(path,checksum,state,fileset_id) values (?,?,?,?)
     PreparedStatement pstmt = pstmts.get("saveBad");
     try {
       pstmt.setInt(4,fileSetId);

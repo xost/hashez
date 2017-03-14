@@ -26,12 +26,12 @@ public class Check implements UAction{
     File.outFileSet(cli.getFileSet(),System.out);
     //Пересчитать
     cli.recalculate();
-    //Записать BadFileSet
-    //Обновить FileSet
-    cli.updateFileSet(dbd);
     System.out.println("FileSet: ");
     File.outFileSet(cli.getFileSet(),System.out);
     System.out.println("BadFileSet: ");
     File.outFileSet(cli.getBadFiles(),System.out);
+    //Записать BadFileSet
+    //Обновить FileSet
+    cli.updateFileSet(dbd);
   }
 }

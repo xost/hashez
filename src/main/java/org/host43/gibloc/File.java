@@ -67,33 +67,9 @@ class File {
     return state;
   }
 
-  File calculate() {
-    //Переписать !!!
-    State newSt=State.OK;
-    Checksum newChs=new Checksum((byte[])null);
-    try{
-      newChs=new Checksum(filename);
-    }catch(NoSuchAlgorithmException|IOException e){
-      newSt=State.ERROR;
-    }
-    if(checksum.equals(newChs)){
-      if(state==newSt)
-        return null;
-      else
-        state=newSt;
-    }else{
-      checksum=newChs;
-      if(newSt==State.OK)
-        state=State.CHANGED;
-      else
-        state=newSt;
-    }
-    return this;
-  }
-
-  File calculate2(){
+  File calculate(){
     Checksum savedChecksum=new Checksum(checksum.getDigest());
-    checksum=null;
+    checksum=new Checksum((byte[])null);
     try{
       checksum=new Checksum(filename);
     } catch (NoSuchAlgorithmException|IOException e) {
@@ -101,10 +77,15 @@ class File {
       return this;
     }
     if(checksum.equals(savedChecksum)){
-      if(state!=State.OK){
-        state=State.CHANGED;
-      }else{
-        return null;
+      switch(state){
+        case OK:
+          return null;
+        case CHANGED:
+          state=State.OK;
+          break;
+        case ERROR:
+          state=State.CHANGED;
+          break;
       }
     }else{
       state=State.CHANGED;
