@@ -28,5 +28,6 @@ public class Check implements UAction{
     cli.recalculate();
     if(save)
       cli.updateFileSet();
+    File.outFileSet(cli.getBadFiles(),System.out);
   }
 }
