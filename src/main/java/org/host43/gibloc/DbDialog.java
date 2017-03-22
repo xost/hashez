@@ -46,6 +46,8 @@ class DbDialog {
         "select max(id) from hashez_event where client_id=?"));
     pstmts.put("getFileSetId", dbConn.prepareStatement(
         "select max(id) from hashez_fileset where client_id=?"));
+    pstmts.put("getBadFilesId", dbConn.prepareStatement(
+        "select max(id) from hashez_badfiles where fileset_id=?"));
     pstmts.put("descr", dbConn.prepareStatement(
         "select descr from hashez_client where id=?"));
     pstmts.put("updateFileSet", dbConn.prepareStatement(
@@ -63,7 +65,7 @@ class DbDialog {
         "insert into hashez_file(path,fileset_id,checksum,state,updated) values(?,?,?,?,?)"));
     //
     pstmts.put("newEvent", dbConn.prepareStatement(
-        "insert into hashez_event (eventType,result,registred,client_id,fileset_id,badfiles_id) values(?,?,?,?,?,?)"));
+        "insert into hashez_event (EventType,result,registred,client_id,fileset_id,badfiles_id) values(?,?,?,?,?,?)"));
   }
 
   String getDescription(int clientId) {
@@ -104,7 +106,7 @@ class DbDialog {
     return fileSet;
   }
 
-  Set<File> updateFileSet(int fileSetId, Set<File> fileSet) { //переписать
+  Set<File> updateFileSet(int clientId,int fileSetId, Set<File> fileSet) { //переписать
     //Возвращаем список файлов которые не удалось обновить
     //update hashez_file set checksum=?,state=?,updated=? where fileset_id=? and path=?
     Set<File> failFiles = new HashSet<>();
@@ -135,58 +137,46 @@ class DbDialog {
     return failFiles;
   }
 
-  void saveBad(int eventId,int fileSetId, Set<File> fileSet) {
+  int saveBad(int eventId,int fileSetId, Set<File> fileSet) {
     //insert into hashez_badfiles(path,checksum,state,fileset_id) values (?,?,?,?)
     PreparedStatement pstmt = pstmts.get("saveBad");
     try {
-      pstmt.setInt(4,fileSetId);
+      pstmt.setInt(4, fileSetId);
       byte[] digest;
-      Checksum chs;
       for (File file : fileSet) {
         pstmt.setString(1, file.getFileName());
-        chs=file.getChecksum();
-        digest=file.getChecksum().getDigest();
-        if(digest==null)pstmt.setNull(2,Types.ARRAY);else pstmt.setBytes(2,digest);
+        digest = file.getChecksum().getDigest();
+        if (digest == null) pstmt.setNull(2, Types.ARRAY);
+        else pstmt.setBytes(2, digest);
         pstmt.setString(3, file.getState().toString());
         pstmt.execute();
       }
     }catch(SQLException e){
       throw new RuntimeException(e);
     }
+    return getBadFilesId(fileSetId);
   }
 
-  int newCli(String clientName, String descr) throws ClientNotFoundException {
+  int newCli(String clientName, String descr) throws SQLException, ClientNotFoundException {
     PreparedStatement pstmt = pstmts.get("createCli");
     int clientId=-1;
-    try {
-      pstmt.setString(1, clientName);
-      pstmt.setString(2, descr);
-      pstmt.setObject(3, atNow());
-      pstmt.execute();
-      clientId=getClientId(clientName);
-      newEvent(eventType.NEWCLIENT,Results.PASS,clientId,null,null);
-    }catch(SQLException e){
-      newEvent(eventType.NEWCLIENT,Results.FAIL,null,null,null);
-      throw new RuntimeException(e);
-    }
+    pstmt.setString(1, clientName);
+    pstmt.setString(2, descr);
+    pstmt.setObject(3, atNow());
+    pstmt.execute();
+    clientId=getClientId(clientName);
     return clientId;
   }
 
-  int newFileSet(int clientId, Set<File> fileSet){
+  int newFileSet(int clientId, Set<File> fileSet) throws SQLException {
     int fileSetId=-1;
-    try {
-      fileSetId = newFileSet(clientId);
-      fillFileSet(fileSetId, fileSet);
-      newEvent(eventType.NEWFILESET, Results.PASS,clientId,fileSetId,null);
-    }catch(SQLException e){
-      newEvent(eventType.NEWFILESET, Results.FAIL,clientId,null,null);
-      new RuntimeException(e);
-    }
+    fileSetId = newFileSet(clientId);
+    fillFileSet(fileSetId, fileSet);
     return fileSetId;
   }
 
-  private void newEvent(eventType type,Results result,Integer clientId,Integer fileSetId,Integer badFilesId){
-    //insert into hashez_event (eventType,result,registred,client_id,fileset_id,badfiles_id) values(?,?,?,?,?,?)
+  void newEvent(EventType type,Results result,Integer clientId,Integer fileSetId,Integer badFilesId){
+    //insert into hashez_event (EventType,result,registred,client_id,fileset_id,badfiles_id) values(?,?,?,?,?,?)
     PreparedStatement pstmt = pstmts.get("newEvent");
     try {
       pstmt.setString(1, type.toString());
@@ -220,6 +210,22 @@ class DbDialog {
     return (int)id;
   }
 
+  private int getBadFilesId(int fileSetId) {
+    PreparedStatement pstmt=pstmts.get("getBadFilesId");
+    int badFilesId=-1;
+    try {
+      pstmt.setInt(1, fileSetId);
+      if (pstmt.execute()) {
+        ResultSet rs = pstmt.getResultSet();
+        if(rs.next())
+          badFilesId=rs.getInt("max(id)");
+      }
+    }catch(SQLException e){
+      throw new RuntimeException(e);
+    }
+    return badFilesId;
+  }
+
   int getFileSetId(int clientId) {
     PreparedStatement pstmt = pstmts.get("getFileSetId");
     int fsId = -1;
@@ -230,7 +236,8 @@ class DbDialog {
         if (rs.next())
           fsId = rs.getInt("max(id)");
       }
-    } catch (SQLException ignored) {
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
     return fsId;
   }
@@ -256,16 +263,12 @@ class DbDialog {
     return new Timestamp(now.getTimeInMillis());
   }
 
-  private int newFileSet(int clientId) {
+  private int newFileSet(int clientId) throws SQLException {
     PreparedStatement pstmt = pstmts.get("newFileSet");
     int fileSetId=-1;
-    try {
-      pstmt.setObject(1,atNow());
-      pstmt.setInt(2, clientId);
-      pstmt.execute();
-    }catch(SQLException e){
-      throw new RuntimeException(e);
-    }
+    pstmt.setObject(1,atNow());
+    pstmt.setInt(2, clientId);
+    pstmt.execute();
     fileSetId=getFileSetId(clientId);
     return fileSetId;
   }

@@ -12,7 +12,7 @@ import java.util.Properties;
  */
 class Config {
   private static Config instance;
-
+  private CommandLine cl;
   private Properties props;
 
   static Config getInstance(CommandLine cl) throws BadParametersException {
@@ -22,6 +22,7 @@ class Config {
   }
 
   private Config(CommandLine cl) throws BadParametersException {
+    this.cl=cl;
     String configFileName;
     configFileName = cl.getOptionValue("cfg","hashezProperties.xml");
     props=new Properties();
@@ -36,27 +37,30 @@ class Config {
       throw new BadParametersException("One or more parameters was not given");
   }
 
-   String connection(){
-    return (String) props.get("connection");
+  String connection() {
+    return props.getProperty("connection");
   }
 
-   String jdbcDriver(){
-    return (String) props.get("jdbcDriver");
+  String jdbcDriver() {
+    return props.getProperty("jdbcDriver");
   }
 
-   String username(){
-    return (String) props.get("username");
+  String username() {
+    return props.getProperty("username");
   }
 
-   String password(){
-    return (String) props.get("password");
+  String password() {
+    return props.getProperty("password");
   }
 
-   String cliName(){
-    return (String) props.get("cliName");
+  String cliName() {
+    return props.getProperty("cliName");
   }
 
-   String description(){
-    return (String) props.get("description");
+  String description(){return props.getProperty("description");
+  }
+
+  boolean save(){
+    if(cl.hasOption("s")) return true; else return false;
   }
 }

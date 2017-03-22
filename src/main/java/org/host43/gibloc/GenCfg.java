@@ -45,6 +45,7 @@ class GenCfg implements UAction {
       props.setProperty("password", password);
       props.setProperty("cliName", cliName);
       props.setProperty("description", description);
+      props.setProperty("smtp",null);
       OutputStream fos = new FileOutputStream(filename);
       props.storeToXML(fos,"Hashez config file");
     } catch (IOException e) {

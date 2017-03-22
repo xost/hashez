@@ -8,4 +8,5 @@
 <entry key="password">gibloc</entry>
 <entry key="description">xoxland.gib.loc</entry>
 <entry key="username">admin</entry>
+<entry key="smtp">212.13.102.115:25</entry>
 </properties>

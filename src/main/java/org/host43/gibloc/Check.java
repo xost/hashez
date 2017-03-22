@@ -3,6 +3,7 @@ package org.host43.gibloc;
 import org.apache.commons.cli.CommandLine;
 
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by stas on 03.02.2017.
@@ -11,9 +12,11 @@ public class Check implements UAction{
 
   private Client cli;
   private DbDialog dbd;
+  private boolean save;
 
   Check(CommandLine cl) throws BadParametersException, ClientNotFoundException {
     Config cfg=Config.getInstance(cl);
+    save=cfg.save();
     dbd=DbDialog.getInstance(cfg.connection(),
         cfg.jdbcDriver(),
         cfg.username(),
@@ -22,16 +25,8 @@ public class Check implements UAction{
   }
   @Override
   public void perform() {
-    System.out.println("FileSet: ");
-    File.outFileSet(cli.getFileSet(),System.out);
-    //Пересчитать
     cli.recalculate();
-    System.out.println("FileSet: ");
-    File.outFileSet(cli.getFileSet(),System.out);
-    System.out.println("BadFileSet: ");
-    File.outFileSet(cli.getBadFiles(),System.out);
-    //Записать BadFileSet
-    //Обновить FileSet
-    cli.updateFileSet(dbd);
+    if(save)
+      cli.updateFileSet();
   }
 }

@@ -45,6 +45,6 @@ class NewFS implements UAction {
   @Override
   public void perform() {
     cli.setFileSet(fileSet);
-    cli.saveFileSet(dbd);
+    cli.saveFileSet();
   }
 }

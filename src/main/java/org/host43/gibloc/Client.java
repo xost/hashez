@@ -9,6 +9,7 @@ import java.util.Set;
  */
 class Client {
 
+  DbDialog dbd;
   private int clientId=-1;
   private String clientName;
   private String descr;
@@ -17,8 +18,10 @@ class Client {
   private int lastEvent=0;
   private int fileSetId=0;
   private boolean fsChanged=false;
+  private boolean needUpdate=false;
 
   Client(String client,DbDialog dbd) throws ClientNotFoundException {
+    this.dbd=dbd;
     clientName=client;
     clientId=dbd.getClientId(clientName);
     if(clientId==-1)
@@ -30,13 +33,19 @@ class Client {
   }
 
   static Client createClient(String cliName,String desr,Set<File> fileSet,DbDialog dbd) throws ClientNotFoundException {
-    int clientId=dbd.newCli(cliName,desr);
-    int fileSetId=-1;
-    if(clientId!=-1)
-      fileSetId=dbd.newFileSet(clientId,fileSet);
-    if(fileSetId!=-1)
-      return new Client(cliName,dbd);
-    return null;
+    try {
+      int clientId = dbd.newCli(cliName, desr);
+      dbd.newEvent(EventType.NEWCLIENT,Results.PASS,clientId,null,null);
+      try {
+        dbd.newFileSet(clientId, fileSet);
+      }catch(SQLException e){
+        dbd.newEvent(EventType.NEWFILESET,Results.FAIL,clientId,null,null);
+      }
+    }catch(SQLException e){
+      dbd.newEvent(EventType.NEWCLIENT,Results.FAIL,null,null,null);
+      return null;
+    }
+    return new Client(cliName,dbd);
   }
 
   void recalculate() {
@@ -47,6 +56,12 @@ class Client {
         badFiles.add(file);
     });
     this.badFiles=badFiles;
+    if(!badFiles.isEmpty()) {
+      needUpdate=true;
+      int badFilesId = dbd.saveBad(lastEvent, fileSetId, badFiles);
+      dbd.newEvent(EventType.CHECK, Results.FAIL, clientId, fileSetId, badFilesId);
+    }else
+      dbd.newEvent(EventType.CHECK,Results.PASS,clientId,fileSetId,null);
   }
 
   Set<File> getFileSet(){
@@ -70,7 +85,6 @@ class Client {
       fsChanged=true;
     if(fsChanged) { //Если отличается, то присвоить новый и очистить badFiles
       this.fileSet = fileSet;
-      this.badFiles.clear();
     }
   }
 
@@ -78,9 +92,15 @@ class Client {
     return badFiles;
   }
 
-  void saveFileSet(DbDialog dbd) {
+  void saveFileSet() {
     if(fsChanged){
-      fileSetId = dbd.newFileSet(clientId, fileSet);
+      try {
+        fileSetId = dbd.newFileSet(clientId, fileSet);
+        dbd.newEvent(EventType.NEWFILESET,Results.PASS,clientId,fileSetId,null);
+      } catch (SQLException e) {
+        dbd.newEvent(EventType.NEWFILESET,Results.FAIL,clientId,null,null);
+        throw new RuntimeException(e);
+      }
     }
   }
 
@@ -93,14 +113,14 @@ class Client {
     return failedFiles;
   }
 
-  void updateFileSet(DbDialog dbd) {
-    if(!badFiles.isEmpty()){
-      dbd.updateFileSet(fileSetId,fileSet);
-      dbd.saveBad(lastEvent, fileSetId, badFiles);
-      badFiles.clear();
-    }else{
-      dbd.updateFileSet(fileSetId,fileSet);
+  void updateFileSet() {
+    if(needUpdate) {
+      Set<File> notUpdatedFiles = dbd.updateFileSet(clientId, fileSetId, fileSet);
+      if (!notUpdatedFiles.isEmpty())
+        dbd.newEvent(EventType.UPDATE, Results.FAIL, clientId, fileSetId, null);
+      else
+        dbd.newEvent(EventType.UPDATE, Results.PASS, clientId, fileSetId, null);
+      needUpdate=false;
     }
   }
-
 }

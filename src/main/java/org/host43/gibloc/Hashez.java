@@ -32,6 +32,7 @@ public class Hashez {
     opts.addOption("p", "password", true, "database user's password");
     opts.addOption("i", "in", true, "file which contains list of files for fileSet");
     opts.addOption("s", "save", false, "save results");
+    opts.addOption("m", "mail", true, "send e-mail");
 
     CommandLine cl;
     try {
