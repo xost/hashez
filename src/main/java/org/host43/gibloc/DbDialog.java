@@ -1,5 +1,8 @@
 package org.host43.gibloc;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 import java.util.*;
 
@@ -9,6 +12,8 @@ import java.util.*;
 class DbDialog {
   private static DbDialog instance;
   private Map<String, PreparedStatement> pstmts;
+
+  private final Logger log=LogManager.getLogger(this.getClass());
 
   static synchronized DbDialog getInstance(String connection,
                                            String jdbcDriver,
@@ -53,7 +58,7 @@ class DbDialog {
     pstmts.put("updateFileSet", dbConn.prepareStatement(
         "update hashez_file set checksum=?,state=?,updated=? where fileset_id=? and path=?"));
     pstmts.put("saveBad", dbConn.prepareStatement(
-        "insert into hashez_badfiles(path,checksum,state,fileset_id) values (?,?,?,?)"));
+        "insert into hashez_badfiles(path,checksum,state,event_id) values (?,?,?,?)"));
     pstmts.put("createCli", dbConn.prepareStatement(
         "insert into hashez_client(client,descr,registred) values(?,?,?)"));
     // два запроса.
@@ -65,7 +70,7 @@ class DbDialog {
         "insert into hashez_file(path,fileset_id,checksum,state,updated) values(?,?,?,?,?)"));
     //
     pstmts.put("newEvent", dbConn.prepareStatement(
-        "insert into hashez_event (EventType,result,registred,client_id,fileset_id,badfiles_id) values(?,?,?,?,?,?)"));
+        "insert into hashez_event (EventType,result,registred,client_id,fileset_id) values(?,?,?,?,?)"));
   }
 
   String getDescription(int clientId) {
@@ -137,24 +142,19 @@ class DbDialog {
     return failFiles;
   }
 
-  int saveBad(int eventId,int fileSetId, Set<File> fileSet) {
-    //insert into hashez_badfiles(path,checksum,state,fileset_id) values (?,?,?,?)
+  void saveBad(int eventId, Set<File> fileSet) throws SQLException {
+    //insert into hashez_badfiles(path,checksum,state,event_id) values (?,?,?,?)
     PreparedStatement pstmt = pstmts.get("saveBad");
-    try {
-      pstmt.setInt(4, fileSetId);
-      byte[] digest;
-      for (File file : fileSet) {
-        pstmt.setString(1, file.getFileName());
-        digest = file.getChecksum().getDigest();
-        if (digest == null) pstmt.setNull(2, Types.ARRAY);
-        else pstmt.setBytes(2, digest);
-        pstmt.setString(3, file.getState().toString());
-        pstmt.execute();
-      }
-    }catch(SQLException e){
-      throw new RuntimeException(e);
+    pstmt.setInt(4, eventId);
+    byte[] digest;
+    for (File file : fileSet) {
+      pstmt.setString(1, file.getFileName());
+      digest = file.getChecksum().getDigest();
+      if (digest == null) pstmt.setNull(2, Types.ARRAY);
+      else pstmt.setBytes(2, digest);
+      pstmt.setString(3, file.getState().toString());
+      pstmt.execute();
     }
-    return getBadFilesId(fileSetId);
   }
 
   int newCli(String clientName, String descr) throws SQLException, ClientNotFoundException {
@@ -175,7 +175,7 @@ class DbDialog {
     return fileSetId;
   }
 
-  void newEvent(EventType type,Results result,Integer clientId,Integer fileSetId,Integer badFilesId){
+  void newEvent(EventType type,Results result,Integer clientId,Integer fileSetId){
     //insert into hashez_event (EventType,result,registred,client_id,fileset_id,badfiles_id) values(?,?,?,?,?,?)
     PreparedStatement pstmt = pstmts.get("newEvent");
     try {
@@ -184,9 +184,9 @@ class DbDialog {
       pstmt.setObject(3, atNow());
       if(clientId==null)pstmt.setNull(4,Types.INTEGER);else pstmt.setInt(4,clientId);
       if(fileSetId==null)pstmt.setNull(5,Types.INTEGER);else pstmt.setInt(5,fileSetId);
-      if(badFilesId==null)pstmt.setNull(6,Types.INTEGER);else pstmt.setInt(6,badFilesId);
       pstmt.execute();
     }catch(SQLException e){
+      log.error("Can not insert new event."+e);
       throw new RuntimeException(e);
     }
   }

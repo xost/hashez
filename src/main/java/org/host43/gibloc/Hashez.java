@@ -4,20 +4,18 @@ import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/**
- * Created by stas on 15.12.2016.
- */
 public class Hashez {
-  private static Logger log= LogManager.getLogger(Hashez.class);
+  private static final Logger log= LogManager.getLogger(Hashez.class);
 
-  public static void main(String[] args) throws ClientNotFoundException {
-    UAction mode=null;
-    if(args.length<1){
-      System.out.println("Error options");
-    }else{
-      mode=getAction(args);
+  public static void main(String[] args){
+    UAction mode;
+    try {
+      mode = getAction(args);
+    } catch (ClientNotFoundException e) {
+      e=new ClientNotFoundException("Client not found. "+e);
+      log.error(e);
+      throw new RuntimeException(e);
     }
-    assert mode != null;
     mode.perform();
   }
 
@@ -54,6 +52,7 @@ public class Hashez {
           throw new BadParametersException("Unknown command");
       }
     } catch (ParseException|BadParametersException e) {
+      log.error(e);
       printCLHelp(opts);
       throw new RuntimeException(e);
     }

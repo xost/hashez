@@ -19,7 +19,7 @@ class NewCli implements UAction {
   private String fileSetFilename;
   private Config cfg;
 
-  private Logger log= LogManager.getLogger(this.getClass());
+  private final Logger log= LogManager.getLogger(this.getClass());
 
   NewCli(CommandLine cl) throws BadParametersException {
     fileSetFilename=cl.getOptionValue("i");
@@ -37,14 +37,15 @@ class NewCli implements UAction {
         cfg.username(),
         cfg.password());
 
-    Set<File> fileSet= null;
+    Set<File> fileSet;
     try {
       fileSet = File.generateFileSet(new FileInputStream(fileSetFilename));
     } catch (FileNotFoundException e) {
+      log.error(e);
       throw new RuntimeException(e);
     }
 
-    Client cli= null;
+    Client cli;
     try {
       cli = Client.createClient(cfg.cliName(),cfg.description(),fileSet,dbd);
     } catch (ClientNotFoundException e) {
@@ -52,14 +53,8 @@ class NewCli implements UAction {
       throw new RuntimeException(e);
     }
     assert cli != null;
-    printFileSet(cli.getFileSet());
+    //Вывести инфу о созданном клиенте
+    File.outFileSet(cli.getFileSet(),System.out);
   }
 
-  private void printFileSet(Set<File> fileSet){
-    fileSet.forEach(file->{
-      System.out.println(file.getFileName());
-      System.out.println(":"+file.getChecksum().toString());
-      System.out.println(":"+file.getState());
-    });
-  }
 }

@@ -8,9 +8,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-/**
- * Created by xost on 12/14/16.
- */
 class Checksum {
   private byte[] digest;
 
