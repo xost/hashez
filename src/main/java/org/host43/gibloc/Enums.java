@@ -13,3 +13,10 @@ enum Results{
   FAIL,
   ;
 }
+
+enum State {
+  OK,
+  CHANGED,
+  ERROR,
+  ;
+}
