@@ -75,10 +75,34 @@ class Config {
     return props.getProperty("cliName");
   }
 
-  String description(){return props.getProperty("description");
+  String description(){
+    return props.getProperty("description");
   }
 
+  String mailFrom(){
+    return props.getProperty("mailFrom");
+  }
+
+  String mailTo(){
+    return props.getProperty("mailTo");
+  }
+
+  String smtpHost(){
+    return props.getProperty("smtpHost");
+  }
+
+  String smtpPort(){
+    return props.getProperty("smtpPort");
+  }
+
+  String mailSubject(){
+    return props.getProperty("mailSubject");
+  }
   boolean save(){
     return cl.hasOption("s");
+  }
+
+  boolean email(){
+    return cl.hasOption("m");
   }
 }

@@ -259,7 +259,7 @@ class DbDialog {
   }
 
   private Timestamp atNow() {
-    Calendar now = Calendar.getInstance();
+    Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow"));
     return new Timestamp(now.getTimeInMillis());
   }
 

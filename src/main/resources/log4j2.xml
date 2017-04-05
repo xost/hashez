@@ -4,10 +4,16 @@
     <File name="error" fileName="error.log">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} -%msg%n"/>
     </File>
+    <Console name="console">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} -%msg%n"/>
+    </Console>
   </Appenders>
   <Loggers>
     <Root level="ERROR">
       <AppenderRef ref="error" level="ERROR"/>
+    </Root>
+    <Root level="INFO">
+      <AppenderRef ref="console" level="INFO"/>
     </Root>
   </Loggers>
 </Configuration>
