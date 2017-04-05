@@ -4,8 +4,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 
 class Config {
@@ -33,10 +35,24 @@ class Config {
       log.error(e);
       throw new RuntimeException(e);
     }
+    String cliName=cl.getOptionValue("c",null);
+    String descr=cl.getOptionValue("d",null);
+    if(cliName!=null)props.setProperty("cliName", cliName);
+    if(descr!=null)props.setProperty("description", descr);
     if(props.get("connection")==null||props.get("jdbcDriver")==null||
         props.get("username")==null||props.get("password")==null||
         props.get("cliName")==null||props.get("description")==null)
       throw new BadParametersException("One or more parameters was not given");
+  }
+
+  void saveConfig() {
+    String configFileName=cl.getOptionValue("cfg","hashezProperties.xml");
+    try(OutputStream fos=new FileOutputStream(configFileName)){
+      props.storeToXML(fos,"hashez_config file");
+    }catch(IOException e){
+      log.error(e);
+      throw new RuntimeException(e);
+    }
   }
 
   String connection() {
