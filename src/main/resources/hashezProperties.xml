@@ -12,5 +12,5 @@
   <entry key="smtpPort">25</entry>
   <entry key="mailTo">stas@gib.ru</entry>
   <entry key="mailFrom">admins@gib.ru</entry>
-  <entry key="mailSubject">Hashez. Control.</entry>
+  <entry key="mailSubject">Hashez: NEWMCI.</entry>
 </properties>

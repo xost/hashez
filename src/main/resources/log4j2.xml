@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Configuration status="ERROR">
+<Configuration status="WARN">
   <Appenders>
+    <Console name="console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} -%msg%n"/>
+    </Console>
     <File name="error" fileName="error.log">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} -%msg%n"/>
     </File>
-    <Console name="console">
-      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} -%msg%n"/>
-    </Console>
   </Appenders>
   <Loggers>
     <Root level="ERROR">
-      <AppenderRef ref="error" level="ERROR"/>
+      <AppenderRef ref="error"/>
     </Root>
-    <Root level="INFO">
-      <AppenderRef ref="console" level="INFO"/>
-    </Root>
+    <Logger name="org.host43.gibloc" level="INFO">
+      <AppenderRef ref="console"/>
+    </Logger>
   </Loggers>
 </Configuration>

@@ -132,4 +132,12 @@ class Client {
       needUpdate=false;
     }
   }
+
+  String getClientName(){
+    return clientName;
+  }
+
+  String getDescription(){
+    return descr;
+  }
 }

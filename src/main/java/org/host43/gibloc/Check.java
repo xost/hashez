@@ -72,12 +72,12 @@ public class Check implements UAction{
       mMsg.addRecipient(Message.RecipientType.TO, new InternetAddress(mailTo));
       mMsg.setSubject(mailSubject);
 
-      String msg;
+      String msg=cli.getClientName()+": "+cli.getDescription()+"\n";
       Set<File> badFiles=cli.getBadFiles();
       if(badFiles.isEmpty()) {
-        msg="Control is PASSED";
+        msg+="Control is PASSED";
       }else{
-        msg="Control is FAILED\n";
+        msg+="Control is FAILED\n";
         msg+="bad files:\n";
         for(File file:badFiles){{
           msg+="\t"+file.getFileName()+"\n";
@@ -86,7 +86,6 @@ public class Check implements UAction{
       mMsg.setText(msg);
       Transport.send(mMsg);
     }catch(MessagingException e){
-      log.error(e);
       log.info(e);
     }
   }
