@@ -82,8 +82,8 @@ class File {
           return null;
         case CHANGED:
           state=State.OK;
-          return null;
-          //break;
+          //return null;
+          break;
         case ERROR:
           state=State.CHANGED;
           break;
